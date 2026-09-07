@@ -88,16 +88,6 @@ FORMATS = [
         "img": "/img/formats/unlimited.jpg",
         "size": "60 cards",
     },
-    {
-        "id": "limited",
-        "name": "Limited",
-        "kicker": "Sealed and Draft",
-        "blurb": "Build from packs at the table. League Challenges, prereleases, and Worlds side events.",
-        "legal": "Cards opened in the event pool only. Official Play! Pokémon Limited procedures.",
-        "official": "https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources/",
-        "img": "/img/formats/limited.jpg",
-        "size": "40+ cards",
-    },
 ]
 FMT = {f["id"]: f for f in FORMATS}
 
@@ -277,7 +267,7 @@ def head(title: str, desc: str, path: str, image: str = "/img/pkdl-hero.jpg", ex
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>{e(title)}</title>
   <meta name="description" content="{e(desc)}" />
-  <link rel="stylesheet" href="/css/site.css?v=pkdl-1" />
+  <link rel="stylesheet" href="/css/site.css?v=pkdl-2" />
   <link rel="canonical" href="{url}" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#c62828" />
@@ -378,7 +368,7 @@ def write(path: str, content: str):
 
 
 def page_index():
-    recent = sorted(LISTS, key=lambda x: (x.get("date") or "", -int(x.get("placing") or 99)), reverse=True)[:40]
+    recent = sorted(LISTS, key=lambda x: (x.get("date") or "", -int(x.get("placing") or 99)), reverse=True)[:56]
     extra = """  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Pokémon Decklists","alternateName":["PKMN","Pokemon Decklists"],"url":"https://pokemondecklists.com/","potentialAction":{"@type":"SearchAction","target":"https://pokemondecklists.com/search.html?q={search_term_string}","query-input":"required name=search_term_string"}}</script>"""
     cards = "\n".join(
         f"""            <a class="format-card" href="/formats/{f['id']}.html">
@@ -389,23 +379,20 @@ def page_index():
     )
     return head(
         "Pokémon TCG Decklists (PKMN) | Pokémon Decklists",
-        "Pokémon TCG decklists by format: Standard, Pocket, Gym Leader Challenge, Expanded, Unlimited, and Limited. August and September 2026 lists, price tracker, and shop.",
+        "Pokémon TCG decklists by format: Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. August and September 2026 lists, price tracker, and shop.",
         "/",
         extra=extra,
     ) + header() + f"""
     <main class="single home" role="main">
       <section class="home-splash" aria-label="Pokémon Decklists">
-        <img class="home-splash-bg" src="/img/pkdl-hero.jpg" alt="Pokémon Decklists banner: stadium lights and energy crystals" width="1400" height="933" fetchpriority="high" decoding="async">
-        <div class="home-splash-bar">
-          <div>
-            <h2>Pokémon Decklists</h2>
-            <div class="formats">
-              <span>Standard</span>
-              <span>Pokémon TCG Pocket</span>
-              <span>Gym Leader Challenge</span>
-            </div>
+        <img class="home-splash-bg" src="/img/pkdl-hero.jpg" alt="Orange fire dragon in vintage Pokémon TCG style, Pokémon Decklists banner" width="1920" height="1080" fetchpriority="high" decoding="async">
+        <div class="home-splash-copy">
+          <h2>Pokémon Decklists</h2>
+          <div class="formats">
+            <span>Standard</span>
+            <span>Pocket</span>
+            <span>Gym Leader Challenge</span>
           </div>
-          <p>PKMN lists by format, not by mascot. Jump a section, or keep scrolling.</p>
         </div>
       </section>
 
@@ -514,7 +501,7 @@ def page_formats_index():
           </a>"""
         for f in FORMATS
     )
-    return head("Pokémon TCG formats | Pokémon Decklists", "Standard, Expanded, Gym Leader Challenge, Pocket, Unlimited, and Limited.", "/formats/") + header("formats") + f"""
+    return head("Pokémon TCG formats | Pokémon Decklists", "Standard, Expanded, Gym Leader Challenge, Pocket, and Unlimited.", "/formats/") + header("formats") + f"""
     <main class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Formats</div>
@@ -533,15 +520,6 @@ def page_format(fmt: dict) -> str:
         f'<div class="combo-card" id="{key}"><span class="dot" style="background:{hx}"></span><div><div style="font-weight:800">{lab}</div><div class="muted">{type_c.get(key,0)} lists using {lab} energy</div></div></div>'
         for key, lab, hx in TYPES if type_c.get(key)
     ) or '<p class="muted">Type breakdown fills in from posted energy.</p>'
-    limited_note = ""
-    if fmt["id"] == "limited":
-        limited_note = """
-        <p>Sealed and Draft lists are built at the table, so public 40-card exports are thinner than constructed. Use the official locator for prereleases and League Challenge Limited, and the Worlds 2026 side-event schedule for sealed cups.</p>
-        <ul class="list">
-          <li><a class="item" href="https://events.pokemon.com/EventLocator" target="_blank" rel="noopener"><div style="font-weight:700">Play! Pokémon event locator</div><div class="link">Open →</div></a></li>
-          <li><a class="item" href="https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources/" target="_blank" rel="noopener"><div style="font-weight:700">Official tournament rules</div><div class="link">Open →</div></a></li>
-        </ul>
-"""
     return head(
         f"{fmt['name']} decklists | Pokémon Decklists",
         f"{fmt['blurb']} Recent {fmt['name']} lists from August and September 2026.",
@@ -594,7 +572,6 @@ def page_format(fmt: dict) -> str:
               <option value="top8">Top 8</option>
             </select>
           </div>
-          {limited_note}
           <ul class="list">
 {list_index_items(rows)}
           </ul>
@@ -1051,7 +1028,7 @@ def page_events():
 def page_rules():
     return head(
         "Pokémon TCG formats and banlist | Pokémon Decklists",
-        "Standard rotation, Expanded, Gym Leader Challenge, Pocket, Unlimited, and Limited in one place.",
+        "Standard rotation, Expanded, Gym Leader Challenge, Pocket, and Unlimited in one place.",
         "/format.html",
     ) + header("rules") + """
     <main class="single">
@@ -1071,7 +1048,6 @@ def page_rules():
             <li><a href="/formats/glc.html">Gym Leader Challenge</a><span class="muted">Community</span><p>Singleton, one type, no rule-box Pokémon. Ban list at gymleaderchallenge.com.</p></li>
             <li><a href="/formats/pocket.html">Pokémon TCG Pocket</a><span class="muted">Mobile</span><p>20-card lists. Separate product line, separate cups.</p></li>
             <li><a href="/formats/unlimited.html">Unlimited</a><span class="muted">Vintage</span><p>Base–Neo and EX-era community cups in August 2026.</p></li>
-            <li><a href="/formats/limited.html">Limited</a><span class="muted">Sealed / Draft</span><p>Build from packs. Use the official event locator.</p></li>
           </ul>
         </section>
         <section class="faq">
@@ -1221,6 +1197,10 @@ def extras():
 .discord-nav{color:var(--muted);font-weight:600;cursor:default}
 header > nav[aria-label="Primary"] a:first-of-type{color:var(--accent);font-weight:800}
 """)
+    stale = ROOT / "formats" / "limited.html"
+    if stale.exists():
+        stale.unlink()
+        print("removed", stale)
 
 
 def main():
