@@ -1,0 +1,3 @@
+window.PKDL_TCGPLAYER = {
+  partnerLink: "https://partner.tcgplayer.com/c/7670706/1780961/21018"
+};

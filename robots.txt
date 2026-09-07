@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pokemondecklists.com/sitemap.xml
