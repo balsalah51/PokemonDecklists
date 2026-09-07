@@ -74,11 +74,11 @@ main.single{grid-template-columns:1fr}
 .home{display:flex;flex-direction:column;gap:0}
 .home-splash{
   position:relative;border-radius:16px;overflow:hidden;
-  background:#b71c1c;box-shadow:var(--shadow);min-height:240px
+  background:#1a0800;box-shadow:var(--shadow);min-height:280px
 }
 .home-splash-bg{
-  display:block;width:100%;height:clamp(220px,34vw,340px);
-  object-fit:cover;object-position:18% 40%;
+  display:block;width:100%;height:clamp(280px,46vw,460px);
+  object-fit:cover;object-position:62% 38%;
 }
 .home-splash-luffy{
   position:absolute;right:22px;top:50%;z-index:2;
@@ -92,14 +92,19 @@ main.single{grid-template-columns:1fr}
   border:4px solid #fff;background:#eee
 }
 .home-splash-luffy:hover{transform:translateY(-58%) rotate(4deg) scale(1.03)}
-.home-splash-bar{
-  position:relative;z-index:1;
-  display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:8px 16px;
-  padding:12px 18px 14px;padding-right:min(230px,34%);
-  background:linear-gradient(90deg,#9b1b1b,#c62828 55%,#8e1a1a);
+.home-splash-bar,
+.home-splash-copy{
+  position:absolute;left:0;right:0;bottom:0;z-index:1;
+  display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+  padding:72px 22px 22px;
+  background:linear-gradient(180deg,transparent 0%,rgba(18,6,0,.55) 42%,rgba(10,3,0,.88) 100%);
   color:#fff
 }
-.home-splash-bar h2{margin:0;font-size:18px;letter-spacing:-.01em;color:#fff}
+.home-splash-copy h2,.home-splash-bar h2{
+  margin:0;font-size:clamp(28px,5.4vw,52px);letter-spacing:-.03em;color:#fff;
+  font-weight:800;line-height:1.05;
+  text-shadow:0 2px 18px rgba(0,0,0,.55)
+}
 .home-splash-bar p{margin:0;font-size:13px;opacity:.9;font-weight:600}
 .home-big3{
   display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 6px
@@ -433,8 +438,8 @@ a.buy-tcg-inline:hover,.card-entry a.buy-tcg-inline:hover{text-decoration:underl
   .home-big-discord{min-height:72px}
   .home-splash-luffy{width:min(132px,36%);right:10px;transform:translateY(-62%) rotate(6deg)}
   .home-splash-luffy:hover{transform:translateY(-62%) rotate(3deg) scale(1.03)}
-  .home-splash-bar{padding-right:min(150px,40%)}
-  .home-splash-bar h2{font-size:16px}
+  .home-splash-copy,.home-splash-bar{padding:56px 16px 16px}
+  .home-splash-copy h2,.home-splash-bar h2{font-size:clamp(24px,8vw,36px)}
   .home-flow{margin:16px 0 10px}
   .home-flow p{white-space:normal;text-align:center}
   .home-leaders-intro-row{flex-direction:column;align-items:flex-start}
@@ -572,14 +577,18 @@ a.tier-leader .meta{font-size:11px;color:var(--muted);font-weight:700;margin-top
   --accent:#c62828;
 }
 .logo, img.logo{background:#c62828}
-.home-splash-bar{
-  background:linear-gradient(90deg,#9b1b1b,#c62828 50%,#d4a017);
+.home-splash-bar,
+.home-splash-copy{
+  background:linear-gradient(180deg,transparent 0%,rgba(18,6,0,.5) 40%,rgba(10,3,0,.9) 100%);
 }
+.home-splash-copy .formats,
 .home-splash-bar .formats{
-  display:flex;gap:8px;flex-wrap:wrap;margin-top:6px
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:2px
 }
+.home-splash-copy .formats span,
 .home-splash-bar .formats span{
-  font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;
+  font-size:12px;font-weight:800;padding:5px 11px;border-radius:999px;
+  letter-spacing:.04em;text-transform:uppercase;
   background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28)
 }
 .format-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}

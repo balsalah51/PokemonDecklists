@@ -2,6 +2,7 @@
 """Scrape Aug–Sep 2026 Pokémon TCG lists from Limitless and Limitless Play."""
 from __future__ import annotations
 
+import html as htmlmod
 import json
 import re
 import time
@@ -35,7 +36,7 @@ def get_json(url: str):
 
 
 def slugify(text: str) -> str:
-    text = text.lower()
+    text = htmlmod.unescape(text or "").lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
     return text.strip("-")[:80] or "list"
 
@@ -166,29 +167,43 @@ def flatten_play_list(dl: dict, pocket: bool) -> dict:
     return out
 
 
-def scrape_worlds(limit: int = 24) -> list[dict]:
-    html = get("https://limitlesstcg.com/tournaments/515")
+def scrape_worlds(
+    page_url: str,
+    event: str,
+    notes: str,
+    slug_tag: str,
+    players: int,
+    limit: int,
+    skip_urls: set[str] | None = None,
+) -> list[dict]:
+    html = get(page_url)
     rows = []
+    skip_urls = skip_urls or set()
     for m in re.finditer(
         r'<tr data-rank="(\d+)" data-name="([^"]+)" data-country="([^"]+)" data-deck="([^"]*)"[\s\S]*?href="/decks/list/(\d+)"',
         html,
     ):
         rank, name, country, deck, lid = m.groups()
+        src = f"https://limitlesstcg.com/decks/list/{lid}"
         rows.append(
             {
                 "rank": int(rank),
-                "player": name,
+                "player": htmlmod.unescape(name),
                 "country": country,
-                "archetype": deck,
+                "archetype": htmlmod.unescape(deck),
                 "list_id": lid,
+                "source_url": src,
             }
         )
         if len(rows) >= limit:
             break
     lists = []
     for row in rows:
+        url = row["source_url"]
+        if url in skip_urls:
+            print("worlds skip", row["rank"], row["player"])
+            continue
         time.sleep(SLEEP)
-        url = f"https://limitlesstcg.com/decks/list/{row['list_id']}"
         try:
             page = get(url)
         except Exception as e:
@@ -203,7 +218,7 @@ def scrape_worlds(limit: int = 24) -> list[dict]:
         if 10 <= placing % 100 <= 20:
             suffix = "th"
         title = f"{placing}{suffix} {row['player']} — {row['archetype']}"
-        slug = slugify(f"{placing}-{row['player']}-{row['archetype']}-worlds-2026")
+        slug = slugify(f"{placing}-{row['player']}-{row['archetype']}-{slug_tag}")
         lists.append(
             {
                 "id": slug,
@@ -211,20 +226,27 @@ def scrape_worlds(limit: int = 24) -> list[dict]:
                 "title": title,
                 "player": row["player"],
                 "placing": placing,
-                "event": "World Championships 2026",
-                "event_url": "https://limitlesstcg.com/tournaments/515",
+                "event": event,
+                "event_url": page_url,
                 "source_url": url,
                 "date": "2026-08-28",
                 "country": row["country"],
                 "archetype": row["archetype"],
                 "energies": energies_of(parsed),
                 "decklist": parsed,
-                "players": 797,
-                "notes": "Masters Division · Limitless TCG public table",
+                "players": players,
+                "notes": notes,
             }
         )
-        print("worlds", placing, row["player"], row["archetype"], "cards",
-              sum(c["count"] for c in parsed["pokemon"] + parsed["trainer"] + parsed["energy"] if c.get("count")))
+        print(
+            "worlds",
+            slug_tag,
+            placing,
+            row["player"],
+            row["archetype"],
+            "cards",
+            sum(c["count"] for c in parsed["pokemon"] + parsed["trainer"] + parsed["energy"] if c.get("count")),
+        )
     return lists
 
 
@@ -243,7 +265,7 @@ def play_tournaments(game: str, fmt: str | None, limit: int = 30) -> list[dict]:
 
 
 def scrape_play(game: str, fmt_code: str | None, site_format: str, max_events: int, top_n: int, min_players: int = 6) -> list[dict]:
-    events = play_tournaments(game, fmt_code, 40)
+    events = play_tournaments(game, fmt_code, 80)
     events = [e for e in events if int(e.get("players") or 0) >= min_players]
     events.sort(key=lambda e: (-int(e.get("players") or 0), e.get("date") or ""), reverse=False)
     events.sort(key=lambda e: e.get("date") or "", reverse=True)
@@ -272,7 +294,7 @@ def scrape_play(game: str, fmt_code: str | None, site_format: str, max_events: i
             if not parsed["pokemon"]:
                 continue
             placing = int(row.get("placing") or 0) or taken + 1
-            player = row.get("name") or row.get("player") or "Unknown"
+            player = htmlmod.unescape(row.get("name") or row.get("player") or "Unknown")
             arch = ""
             deck = row.get("deck") or {}
             if isinstance(deck, dict):
@@ -307,11 +329,6 @@ def scrape_play(game: str, fmt_code: str | None, site_format: str, max_events: i
             taken += 1
         print("play", site_format, date, name[:40], "got", taken)
     return lists
-
-
-def scrape_limited_placeholder() -> list[dict]:
-    """Limited rarely posts full lists on Play; keep the format page honest."""
-    return []
 
 
 def unique_cards(lists: list[dict]) -> list[dict]:
@@ -394,38 +411,93 @@ def fetch_limitless_prices(cards: list[dict], max_cards: int = 36) -> dict:
     return prices
 
 
-def main():
-    lists = []
-    print("=== Worlds ===")
-    lists += scrape_worlds(24)
-
-    print("=== Standard Play ===")
-    lists += scrape_play("PTCG", "STANDARD", "standard", max_events=4, top_n=8, min_players=100)
-
-    print("=== Expanded ===")
-    lists += scrape_play("PTCG", "EXPANDED", "expanded", max_events=4, top_n=5, min_players=6)
-
-    print("=== GLC ===")
-    lists += scrape_play("PTCG", "GLC", "glc", max_events=5, top_n=5, min_players=8)
-
-    print("=== Pocket ===")
-    lists += scrape_play("POCKET", None, "pocket", max_events=4, top_n=8, min_players=80)
-
-    print("=== Vintage EX ===")
-    lists += scrape_play("PTCG", "EX", "unlimited", max_events=3, top_n=4, min_players=8)
-
-    print("=== Base-Neo ===")
-    lists += scrape_play("PTCG", "BASENEO", "unlimited", max_events=3, top_n=4, min_players=8)
-
-    # de-dupe ids
-    used = set()
-    for lst in lists:
+def merge_lists(old: list[dict], new: list[dict]) -> list[dict]:
+    used = {x["id"] for x in old}
+    seen = {(x.get("source_url"), x.get("player"), x.get("placing")) for x in old}
+    out = list(old)
+    for lst in new:
+        key = (lst.get("source_url"), lst.get("player"), lst.get("placing"))
+        if lst["id"] in used or key in seen:
+            continue
         base = lst["id"]
         i = 2
         while lst["id"] in used:
             lst["id"] = f"{base}-{i}"
             i += 1
         used.add(lst["id"])
+        seen.add(key)
+        out.append(lst)
+    return out
+
+
+def main():
+    lists = []
+    if (DATA / "lists.json").exists():
+        lists = json.loads((DATA / "lists.json").read_text()).get("lists") or []
+    skip_urls = {x.get("source_url") for x in lists if "/decks/list/" in (x.get("source_url") or "")}
+    print("existing", len(lists), "worlds urls", len(skip_urls))
+
+    print("=== Worlds Masters ===")
+    lists = merge_lists(
+        lists,
+        scrape_worlds(
+            "https://limitlesstcg.com/tournaments/515",
+            "World Championships 2026",
+            "Masters Division · Limitless TCG public table",
+            "worlds-2026",
+            797,
+            80,
+            skip_urls,
+        ),
+    )
+    skip_urls = {x.get("source_url") for x in lists if "/decks/list/" in (x.get("source_url") or "")}
+
+    print("=== Worlds Seniors ===")
+    lists = merge_lists(
+        lists,
+        scrape_worlds(
+            "https://limitlesstcg.com/tournaments/515/SR",
+            "World Championships 2026",
+            "Seniors Division · Limitless TCG public table",
+            "worlds-2026-sr",
+            70,
+            16,
+            skip_urls,
+        ),
+    )
+    skip_urls = {x.get("source_url") for x in lists if "/decks/list/" in (x.get("source_url") or "")}
+
+    print("=== Worlds Juniors ===")
+    lists = merge_lists(
+        lists,
+        scrape_worlds(
+            "https://limitlesstcg.com/tournaments/515/JR",
+            "World Championships 2026",
+            "Juniors Division · Limitless TCG public table",
+            "worlds-2026-jr",
+            69,
+            16,
+            skip_urls,
+        ),
+    )
+
+    print("=== Standard Play ===")
+    lists = merge_lists(lists, scrape_play("PTCG", "STANDARD", "standard", max_events=12, top_n=12, min_players=64))
+
+    print("=== Expanded ===")
+    lists = merge_lists(lists, scrape_play("PTCG", "EXPANDED", "expanded", max_events=8, top_n=8, min_players=3))
+
+    print("=== GLC ===")
+    lists = merge_lists(lists, scrape_play("PTCG", "GLC", "glc", max_events=12, top_n=8, min_players=6))
+
+    print("=== Pocket ===")
+    lists = merge_lists(lists, scrape_play("POCKET", None, "pocket", max_events=12, top_n=10, min_players=64))
+
+    print("=== Vintage EX ===")
+    lists = merge_lists(lists, scrape_play("PTCG", "EX", "unlimited", max_events=6, top_n=6, min_players=6))
+
+    print("=== Base-Neo ===")
+    lists = merge_lists(lists, scrape_play("PTCG", "BASENEO", "unlimited", max_events=4, top_n=6, min_players=6))
 
     lists.sort(key=lambda x: (x.get("date") or "", -int(x.get("placing") == 1), x.get("placing") or 99), reverse=True)
 
@@ -441,9 +513,12 @@ def main():
     (DATA / "cards.json").write_text(json.dumps(cards, indent=2))
     print("unique constructed cards", len(cards))
 
-    prices = fetch_limitless_prices(cards, 40)
-    (DATA / "prices.json").write_text(json.dumps(prices, indent=2))
-    print("prices", len(prices))
+    if (DATA / "prices.json").exists() and json.loads((DATA / "prices.json").read_text()):
+        print("keeping existing prices.json")
+    else:
+        prices = fetch_limitless_prices(cards, 40)
+        (DATA / "prices.json").write_text(json.dumps(prices, indent=2))
+        print("prices", len(prices))
 
 
 if __name__ == "__main__":
