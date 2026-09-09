@@ -808,9 +808,12 @@ def change_since(hist: list, days: int, spot: float | None) -> float | None:
     if not prev:
         return None
     now = spot if spot else last
-    if prev < 0.05:
+    if prev < 0.75:
         return None
-    return (now - prev) / prev * 100.0
+    pct = (now - prev) / prev * 100.0
+    if abs(pct) > 250:
+        return None
+    return pct
 
 
 def card_file(setc, num) -> str:
