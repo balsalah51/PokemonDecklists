@@ -133,7 +133,8 @@ def card_img(card: dict, pocket: bool = False) -> str:
         return ""
     if pocket:
         return f"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/pocket/{s}/{s}_{n}_EN.webp"
-    return f"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/{s}/{s}_{n}_R_EN.png"
+    nfile = n.zfill(3) if n.isdigit() else n
+    return f"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/{s}/{s}_{nfile}_R_EN.png"
 
 
 def flatten_play_list(dl: dict, pocket: bool) -> dict:

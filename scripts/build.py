@@ -825,6 +825,31 @@ def card_href(setc, num) -> str:
     return f"/collectibles/cards/{card_file(setc, num)}.html"
 
 
+EX_IMG = {
+    "RG": "ex6",
+    "TRR": "ex7",
+    "DS": "ex11",
+    "LM": "ex12",
+    "HP": "ex13",
+    "CG": "ex14",
+    "DF": "ex15",
+    "PK": "ex16",
+}
+
+
+def fix_card_image(image, setc, num) -> str:
+    setc, num = str(setc or ""), str(num or "")
+    if setc in EX_IMG and num.isdigit():
+        return f"https://images.pokemontcg.io/{EX_IMG[setc]}/{num}_hires.png"
+    img = image or ""
+    if num.isdigit() and len(num) < 3:
+        pad = num.zfill(3)
+        img = img.replace(f"_{num}_R_EN", f"_{pad}_R_EN").replace(f"_{num}_EN.", f"_{pad}_EN.")
+    if not img and setc and num.isdigit():
+        img = f"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/{setc}/{setc}_{num.zfill(3)}_R_EN.png"
+    return img
+
+
 def spark_svg(values, w=640, h=160) -> str:
     if not values or len(values) < 2:
         return '<p class="muted">No public history yet.</p>'
@@ -857,7 +882,7 @@ def price_records() -> list[dict]:
             "name": card["name"],
             "set": card["set"],
             "number": str(card["number"]),
-            "image": card.get("image") or "",
+            "image": fix_card_image(card.get("image") or "", card["set"], card["number"]),
             "spot": spot,
             "change7": change_since(card.get("history") or [], 7, spot),
             "change30": change_since(card.get("history") or [], 30, spot),
