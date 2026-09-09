@@ -264,8 +264,8 @@ def play_tournaments(game: str, fmt: str | None, limit: int = 30) -> list[dict]:
     return out
 
 
-def scrape_play(game: str, fmt_code: str | None, site_format: str, max_events: int, top_n: int, min_players: int = 6) -> list[dict]:
-    events = play_tournaments(game, fmt_code, 80)
+def scrape_play(game: str, fmt_code: str | None, site_format: str, max_events: int, top_n: int, min_players: int = 6, tournament_limit: int = 200) -> list[dict]:
+    events = play_tournaments(game, fmt_code, tournament_limit)
     events = [e for e in events if int(e.get("players") or 0) >= min_players]
     events.sort(key=lambda e: (-int(e.get("players") or 0), e.get("date") or ""), reverse=False)
     events.sort(key=lambda e: e.get("date") or "", reverse=True)
@@ -362,21 +362,58 @@ def unique_cards(lists: list[dict]) -> list[dict]:
     return out
 
 
-def fetch_limitless_prices(cards: list[dict], max_cards: int = 36) -> dict:
-    """Pull TCGPlayer history from Limitless card IDs."""
-    prices = {}
-    for card in cards[:max_cards]:
+def parse_card_meta(html: str) -> dict:
+    meta = {}
+    blob = re.search(r'class="card-text"[^>]*>([\s\S]*?)</div>', html)
+    plain = re.sub(r"<[^>]+>", " ", blob.group(1) if blob else "")
+    plain = htmlmod.unescape(re.sub(r"\s+", " ", plain)).strip()
+    meta["text"] = plain[:500]
+    m = re.search(r"Illustrated by\s+(.+?)(?:\s+[A-Z]\s+Regulation Mark|$)", plain)
+    if m:
+        meta["artist"] = m.group(1).strip(" ·-")
+    m = re.search(r"-\s*([A-Za-z][A-Za-z/ ]*?)\s*-\s*(\d+)\s*HP", plain)
+    if m:
+        meta["ptype"] = m.group(1).strip()
+        meta["hp"] = int(m.group(2))
+    m = re.search(r"\b(Pokémon|Trainer|Energy)\b", plain)
+    if m:
+        meta["kind"] = m.group(1)
+    m = re.search(r"\b(Basic|Stage 1|Stage 2|Item|Supporter|Stadium|Pokémon Tool|Tool)\b", plain)
+    if m:
+        meta["stage"] = m.group(1)
+    m = re.search(r"([A-Z])\s+Regulation Mark", plain)
+    if m:
+        meta["regulation"] = m.group(1)
+    tcg = re.search(r"tcgplayer\.com/product/(\d+)", html)
+    if tcg:
+        meta["tcgplayer_id"] = tcg.group(1)
+    usd = re.findall(r'class="card-price usd"[^>]*>\$([0-9.]+)', html)
+    if usd:
+        meta["spot"] = float(usd[0])
+        if len(usd) > 1:
+            meta["spot_reverse"] = float(usd[1]) if len(usd) > 1 else None
+    return meta
+
+
+def fetch_limitless_prices(cards: list[dict], max_cards: int = 200, existing: dict | None = None) -> dict:
+    """Pull TCGPlayer history and collectible metadata from Limitless card pages."""
+    prices = dict(existing or {})
+    for card in cards:
+        if len(prices) >= max_cards:
+            break
         setc, num = card["set"], card["number"]
+        key = f"{setc}-{num}"
+        if key in prices and prices[key].get("history"):
+            continue
         time.sleep(SLEEP)
-        url = f"https://limitlesstcg.com/cards/{urllib.parse.quote(setc)}/{urllib.parse.quote(str(num))}"
+        url = f"https://limitlesstcg.com/cards/{urllib.parse.quote(str(setc))}/{urllib.parse.quote(str(num))}"
         try:
             html = get(url)
         except Exception as e:
             print("card page fail", setc, num, e)
             continue
         m = re.search(r"var cardId\s*=\s*(\d+)", html)
-        usd = re.search(r'class="card-price usd"[^>]*>\$([0-9.]+)', html)
-        tcg = re.search(r"tcgplayer\.com/product/(\d+)", html)
+        meta = parse_card_meta(html)
         if not m:
             print("no cardId", setc, num)
             continue
@@ -388,24 +425,30 @@ def fetch_limitless_prices(cards: list[dict], max_cards: int = 36) -> dict:
             print("hist fail", cid, e)
             hist = {}
         tcgplayer = hist.get("tcgplayer") or []
-        # keep last ~90 points
         if len(tcgplayer) > 120:
             tcgplayer = tcgplayer[-120:]
-        key = f"{setc}-{num}"
-        latest = None
-        if tcgplayer:
-            latest = tcgplayer[-1]
+        latest = tcgplayer[-1] if tcgplayer else None
+        spot = meta.get("spot")
+        if spot is None and isinstance(latest, (list, tuple)) and len(latest) >= 2:
+            spot = float(latest[1]) / 100.0
         prices[key] = {
             "name": card["name"],
             "set": setc,
             "number": num,
             "image": card.get("image") or "",
             "limitless_id": cid,
-            "tcgplayer_id": tcg.group(1) if tcg else None,
-            "spot": float(usd.group(1)) if usd else (latest.get("market") if isinstance(latest, dict) else None),
+            "tcgplayer_id": meta.get("tcgplayer_id") or card.get("tcgplayer_id"),
+            "spot": spot,
             "history": tcgplayer,
             "url": url,
             "count": card.get("count") or 0,
+            "artist": meta.get("artist") or "",
+            "ptype": meta.get("ptype") or "",
+            "hp": meta.get("hp"),
+            "kind": meta.get("kind") or "",
+            "stage": meta.get("stage") or "",
+            "regulation": meta.get("regulation") or "",
+            "text": meta.get("text") or "",
         }
         print("price", card["name"], setc, num, "pts", len(tcgplayer), "spot", prices[key]["spot"])
     return prices
@@ -446,7 +489,7 @@ def main():
             "Masters Division · Limitless TCG public table",
             "worlds-2026",
             797,
-            80,
+            128,
             skip_urls,
         ),
     )
@@ -461,7 +504,7 @@ def main():
             "Seniors Division · Limitless TCG public table",
             "worlds-2026-sr",
             70,
-            16,
+            64,
             skip_urls,
         ),
     )
@@ -476,33 +519,42 @@ def main():
             "Juniors Division · Limitless TCG public table",
             "worlds-2026-jr",
             69,
-            16,
+            64,
             skip_urls,
         ),
     )
 
     print("=== Standard Play ===")
-    lists = merge_lists(lists, scrape_play("PTCG", "STANDARD", "standard", max_events=12, top_n=12, min_players=64))
+    lists = merge_lists(
+        lists,
+        scrape_play("PTCG", "STANDARD", "standard", max_events=22, top_n=16, min_players=32, tournament_limit=200),
+    )
 
     print("=== Expanded ===")
-    lists = merge_lists(lists, scrape_play("PTCG", "EXPANDED", "expanded", max_events=8, top_n=8, min_players=3))
+    lists = merge_lists(
+        lists, scrape_play("PTCG", "EXPANDED", "expanded", max_events=10, top_n=12, min_players=3, tournament_limit=40)
+    )
 
     print("=== GLC ===")
-    lists = merge_lists(lists, scrape_play("PTCG", "GLC", "glc", max_events=12, top_n=8, min_players=6))
+    lists = merge_lists(lists, scrape_play("PTCG", "GLC", "glc", max_events=18, top_n=12, min_players=4, tournament_limit=40))
 
     print("=== Pocket ===")
-    lists = merge_lists(lists, scrape_play("POCKET", None, "pocket", max_events=12, top_n=10, min_players=64))
+    lists = merge_lists(
+        lists, scrape_play("POCKET", None, "pocket", max_events=20, top_n=14, min_players=32, tournament_limit=200)
+    )
 
     print("=== Vintage EX ===")
-    lists = merge_lists(lists, scrape_play("PTCG", "EX", "unlimited", max_events=6, top_n=6, min_players=6))
+    lists = merge_lists(lists, scrape_play("PTCG", "EX", "unlimited", max_events=8, top_n=8, min_players=6, tournament_limit=40))
 
     print("=== Base-Neo ===")
-    lists = merge_lists(lists, scrape_play("PTCG", "BASENEO", "unlimited", max_events=4, top_n=6, min_players=6))
+    lists = merge_lists(
+        lists, scrape_play("PTCG", "BASENEO", "unlimited", max_events=6, top_n=8, min_players=6, tournament_limit=30)
+    )
 
     lists.sort(key=lambda x: (x.get("date") or "", -int(x.get("placing") == 1), x.get("placing") or 99), reverse=True)
 
     payload = {
-        "scraped": "2026-09-07",
+        "scraped": "2026-09-09",
         "source": ["https://limitlesstcg.com/", "https://play.limitlesstcg.com/"],
         "lists": lists,
     }
@@ -513,12 +565,12 @@ def main():
     (DATA / "cards.json").write_text(json.dumps(cards, indent=2))
     print("unique constructed cards", len(cards))
 
-    if (DATA / "prices.json").exists() and json.loads((DATA / "prices.json").read_text()):
-        print("keeping existing prices.json")
-    else:
-        prices = fetch_limitless_prices(cards, 40)
-        (DATA / "prices.json").write_text(json.dumps(prices, indent=2))
-        print("prices", len(prices))
+    existing_prices = {}
+    if (DATA / "prices.json").exists():
+        existing_prices = json.loads((DATA / "prices.json").read_text()) or {}
+    prices = fetch_limitless_prices(cards, max_cards=220, existing=existing_prices)
+    (DATA / "prices.json").write_text(json.dumps(prices, indent=2))
+    print("prices", len(prices))
 
 
 if __name__ == "__main__":

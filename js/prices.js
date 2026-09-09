@@ -39,7 +39,7 @@
         var tr = document.createElement("tr");
         tr.innerHTML =
           "<td><img src=\"" + (row.image || "") + "\" alt=\"\"></td>" +
-          "<td><strong>" + row.name + "</strong><div class=\"muted\">" + row.set + " " + row.number + "</div></td>" +
+        "<td><a href=\"" + (row.href || "#") + "\"><strong>" + row.name + "</strong></a><div class=\"muted\">" + row.set + " " + row.number + "</div></td>" +
           "<td>" + money(row.spot) + "</td>" +
           "<td class=\"" + (row.change7 >= 0 ? "up" : "down") + "\">" + (row.change7 == null ? "—" : ((row.change7 >= 0 ? "+" : "") + row.change7.toFixed(1) + "%")) + "</td>" +
           "<td class=\"" + (row.change30 >= 0 ? "up" : "down") + "\">" + (row.change30 == null ? "—" : ((row.change30 >= 0 ? "+" : "") + row.change30.toFixed(1) + "%")) + "</td>" +
@@ -58,7 +58,7 @@
         "<div class=\"price-hero\">" +
         "<img src=\"" + (row.image || "") + "\" alt=\"" + row.name + "\">" +
         "<div><div class=\"muted\">" + row.set + " · " + row.number + "</div>" +
-        "<h3 style=\"margin:4px 0 8px\">" + row.name + "</h3>" +
+        "<h3 style=\"margin:4px 0 8px\"><a href=\"" + (row.href || "#") + "\">" + row.name + "</a></h3>" +
         "<div class=\"big-price\">" + money(row.spot) + "</div>" +
         "<p class=\"muted\">7-day " + (row.change7 == null ? "—" : row.change7.toFixed(1) + "%") +
         " · 30-day " + (row.change30 == null ? "—" : row.change30.toFixed(1) + "%") +
