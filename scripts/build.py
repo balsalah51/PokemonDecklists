@@ -13,13 +13,14 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "lists.json").read_text())
 PRICES = json.loads((ROOT / "data" / "prices.json").read_text())
+CARDS = json.loads((ROOT / "data" / "cards.json").read_text()) if (ROOT / "data" / "cards.json").exists() else []
 LISTS = DATA["lists"]
 SITE = "Pokémon Decklists"
 SHORT = "PKMN"
 CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
-NOW = "2026-09-07"
+NOW = "2026-09-09"
 
 TYPES = [
     ("grass", "Grass", "#4c9a2a"),
@@ -219,9 +220,9 @@ def nav(current: str = "") -> str:
         {a("/tier-list.html", "Tier List", "tier")}
         {a("/#recent", "Recent lists", "recent")}
         {a("/formats/", "Formats", "formats")}
-        {a("/format.html", "Rules", "rules")}
-        {a("/events.html", "Events", "events")}
+        {a("/collectibles/", "Collectibles", "collect")}
         {a("/price-tracker.html", "Prices", "prices")}
+        {a("/events.html", "Events", "events")}
         {a("/guides/", "Guides", "guides")}
         {a("/shop/", "Shop", "shop")}
         {a("/search.html", "Search", "search")}
@@ -246,7 +247,7 @@ def footer(current: str = "") -> str:
     return f"""    <footer>
       © <span id="year"></span> Pokémon Decklists — Fan site, not affiliated with Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast.
       As an Amazon Associate I earn from qualifying purchases.
-      <a href="/tier-list.html">Tier List</a> · <a href="/formats/">Formats</a> · <a href="/price-tracker.html">Prices</a> · <a href="/guides/">Guides</a> · <a href="/shop/">Shop</a> · <a href="/privacy.html">Privacy</a>
+      <a href="/tier-list.html">Tier List</a> · <a href="/formats/">Formats</a> · <a href="/collectibles/">Collectibles</a> · <a href="/price-tracker.html">Prices</a> · <a href="/guides/">Guides</a> · <a href="/shop/">Shop</a> · <a href="/privacy.html">Privacy</a>
     </footer>
   </div>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
@@ -267,7 +268,7 @@ def head(title: str, desc: str, path: str, image: str = "/img/pkdl-hero.jpg", ex
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>{e(title)}</title>
   <meta name="description" content="{e(desc)}" />
-  <link rel="stylesheet" href="/css/site.css?v=pkdl-2" />
+  <link rel="stylesheet" href="/css/site.css?v=pkdl-3" />
   <link rel="canonical" href="{url}" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#c62828" />
@@ -369,6 +370,7 @@ def write(path: str, content: str):
 
 def page_index():
     recent = sorted(LISTS, key=lambda x: (x.get("date") or "", -int(x.get("placing") or 99)), reverse=True)[:56]
+    teasers = collect_teaser_html()
     extra = """  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Pokémon Decklists","alternateName":["PKMN","Pokemon Decklists"],"url":"https://pokemondecklists.com/","potentialAction":{"@type":"SearchAction","target":"https://pokemondecklists.com/search.html?q={search_term_string}","query-input":"required name=search_term_string"}}</script>"""
     cards = "\n".join(
         f"""            <a class="format-card" href="/formats/{f['id']}.html">
@@ -405,6 +407,36 @@ def page_index():
         <div class="go">Official events →</div>
       </a>
 
+      <div class="home-halves">
+        <section class="home-half home-half-play" id="competitive">
+          <div class="home-half-head">
+            <p class="kicker">Competitive</p>
+            <h3>Decklists</h3>
+            <p>{len(LISTS)} August–September 2026 lists, organized by format.</p>
+          </div>
+          <div class="home-half-body">
+            <a class="half-link" href="#formats"><strong>Formats</strong><span>Types, color combos, recent lists</span></a>
+            <a class="half-link" href="#recent"><strong>Recent lists</strong><span>Newest Worlds and Limitless Play cups</span></a>
+            <a class="half-link" href="/tier-list.html"><strong>Tier list</strong><span>Standard after Worlds 2026</span></a>
+            <a class="half-link" href="/events.html"><strong>Events</strong><span>Official locator and championship dates</span></a>
+          </div>
+        </section>
+        <section class="home-half home-half-collect" id="collectibles-home">
+          <div class="home-half-head">
+            <p class="kicker">Collectibles</p>
+            <h3>Prices &amp; card info</h3>
+            <p>Market history, set pages, and TCGPlayer affiliate buys for singles.</p>
+          </div>
+          <div class="home-half-body">
+            <a class="half-link" href="/collectibles/"><strong>Collectibles hub</strong><span>Catalog, movers, and card pages</span></a>
+            <a class="half-link" href="/price-tracker.html"><strong>Price tracker</strong><span>Charts, 7-day / 30-day trends</span></a>
+            <a class="half-link" href="/collectibles/sets/"><strong>Sets</strong><span>Singles grouped by set code</span></a>
+            <a class="half-link" href="/shop/"><strong>Shop</strong><span>Sleeves and table gear on Amazon</span></a>
+            {teasers}
+          </div>
+        </section>
+      </div>
+
       <nav class="home-big3" aria-label="Main sections">
         <a class="home-big home-big-tier" href="/tier-list.html">
           <span class="home-big-title">Tier List</span>
@@ -412,15 +444,15 @@ def page_index():
         </a>
         <a class="home-big home-big-recent" href="#recent">
           <span class="home-big-title">Recent Lists</span>
-          <span class="home-big-note">August and September 2026 results</span>
+          <span class="home-big-note">{len(LISTS)} lists this window</span>
         </a>
         <a class="home-big home-big-formats" href="#formats">
           <span class="home-big-title">Formats</span>
           <span class="home-big-note">Standard, Pocket, GLC, Expanded…</span>
         </a>
-        <a class="home-big home-big-prices" href="/price-tracker.html">
-          <span class="home-big-title">Price Tracker</span>
-          <span class="home-big-note">History, trends, TCGplayer links</span>
+        <a class="home-big home-big-prices" href="/collectibles/">
+          <span class="home-big-title">Collectibles</span>
+          <span class="home-big-note">Prices, card info, set pages</span>
         </a>
         <a class="home-big home-big-shop" href="/shop/">
           <span class="home-big-title">Shop</span>
@@ -776,10 +808,67 @@ def change_since(hist: list, days: int, spot: float | None) -> float | None:
     if not prev:
         return None
     now = spot if spot else last
-    return (now - prev) / prev * 100.0
+    if prev < 0.75:
+        return None
+    pct = (now - prev) / prev * 100.0
+    if abs(pct) > 250:
+        return None
+    return pct
 
 
-def page_prices():
+def card_file(setc, num) -> str:
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "-", f"{setc}-{num}").strip("-")
+    return safe or "card"
+
+
+def card_href(setc, num) -> str:
+    return f"/collectibles/cards/{card_file(setc, num)}.html"
+
+
+EX_IMG = {
+    "RG": "ex6",
+    "TRR": "ex7",
+    "DS": "ex11",
+    "LM": "ex12",
+    "HP": "ex13",
+    "CG": "ex14",
+    "DF": "ex15",
+    "PK": "ex16",
+}
+
+
+def fix_card_image(image, setc, num) -> str:
+    setc, num = str(setc or ""), str(num or "")
+    if setc in EX_IMG and num.isdigit():
+        return f"https://images.pokemontcg.io/{EX_IMG[setc]}/{num}_hires.png"
+    img = image or ""
+    if num.isdigit() and len(num) < 3:
+        pad = num.zfill(3)
+        img = img.replace(f"_{num}_R_EN", f"_{pad}_R_EN").replace(f"_{num}_EN.", f"_{pad}_EN.")
+    if not img and setc and num.isdigit():
+        img = f"https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/{setc}/{setc}_{num.zfill(3)}_R_EN.png"
+    return img
+
+
+def spark_svg(values, w=640, h=160) -> str:
+    if not values or len(values) < 2:
+        return '<p class="muted">No public history yet.</p>'
+    mn, mx = min(values), max(values)
+    if mx == mn:
+        mx = mn + 1
+    pts = []
+    for i, v in enumerate(values):
+        x = (i / (len(values) - 1)) * (w - 4) + 2
+        y = h - 3 - ((v - mn) / (mx - mn)) * (h - 8)
+        pts.append(f"{x:.1f},{y:.1f}")
+    color = "#2e7d32" if values[-1] >= values[0] else "#c62828"
+    return (
+        f'<svg class="spark spark-lg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" aria-hidden="true">'
+        f'<polyline fill="none" stroke="{color}" stroke-width="2.4" points="{" ".join(pts)}"/></svg>'
+    )
+
+
+def price_records() -> list[dict]:
     rows = []
     for key, card in PRICES.items():
         series = hist_series(card.get("history") or [])
@@ -789,22 +878,319 @@ def page_prices():
         pid = card.get("tcgplayer_id")
         buy = aff(f"https://www.tcgplayer.com/product/{pid}") if pid else tcg_search(card["name"], card["set"], card["number"])
         rows.append({
+            "key": key,
             "name": card["name"],
             "set": card["set"],
-            "number": card["number"],
-            "image": card.get("image") or "",
+            "number": str(card["number"]),
+            "image": fix_card_image(card.get("image") or "", card["set"], card["number"]),
             "spot": spot,
             "change7": change_since(card.get("history") or [], 7, spot),
             "change30": change_since(card.get("history") or [], 30, spot),
-            "series": series[-60:] if series else [],
+            "series": series[-90:] if series else [],
             "buy": buy,
             "count": card.get("count") or 0,
+            "artist": card.get("artist") or "",
+            "ptype": card.get("ptype") or "",
+            "hp": card.get("hp"),
+            "kind": card.get("kind") or "",
+            "stage": card.get("stage") or "",
+            "regulation": card.get("regulation") or "",
+            "text": card.get("text") or "",
+            "href": card_href(card["set"], card["number"]),
+            "url": card.get("url") or "",
         })
     rows.sort(key=lambda r: -(r["spot"] or 0))
-    payload = json.dumps(rows, ensure_ascii=False)
-    movers = sorted(rows, key=lambda r: abs(r["change7"] or 0), reverse=True)[:6]
+    return rows
+
+
+def decks_with_card(setc, num, limit=8) -> list[dict]:
+    out = []
+    setc, num = str(setc), str(num)
+    for lst in LISTS:
+        dl = lst.get("decklist") or {}
+        hit = False
+        for bucket in ("pokemon", "trainer", "energy"):
+            for c in dl.get(bucket) or []:
+                if str(c.get("set") or "") == setc and str(c.get("number") or "") == num:
+                    hit = True
+                    break
+            if hit:
+                break
+        if hit:
+            out.append(lst)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def collect_teaser_html() -> str:
+    rows = price_records()
+    if not rows:
+        return ""
+    movers = sorted(rows, key=lambda r: abs(r["change7"] or 0), reverse=True)[:4]
+    bits = ['<div class="collect-teasers">']
+    for m in movers:
+        ch = m["change7"]
+        cls = "up" if (ch or 0) >= 0 else "down"
+        label = "—" if ch is None else f"{ch:+.1f}%"
+        bits.append(
+            f'<a class="collect-teaser" href="{m["href"]}"><img src="{e(m["image"])}" alt="">'
+            f'<span><strong>{e(m["name"])}</strong><span class="{cls}">{label} 7d</span></span></a>'
+        )
+    bits.append("</div>")
+    return "\n".join(bits)
+
+
+def page_collectibles_hub():
+    rows = price_records()
+    movers = sorted(rows, key=lambda r: abs(r["change7"] or 0), reverse=True)[:8]
+    costly = sorted(rows, key=lambda r: -(r["spot"] or 0))[:8]
+    sets = Counter(r["set"] for r in rows)
     mover_html = "\n".join(
-        f'<li><a class="item" href="#tracker"><div><div style="font-weight:700">{e(m["name"])}</div><div class="muted">{e(m["set"])} {e(m["number"])}</div></div><div class="{"up" if (m["change7"] or 0)>=0 else "down"}">{(m["change7"] or 0):+.1f}%</div></a></li>'
+        f'<li><a class="item" href="{m["href"]}"><div><div style="font-weight:700">{e(m["name"])}</div>'
+        f'<div class="muted">{e(m["set"])} {e(m["number"])}' + (f' · {e(m["artist"])}' if m["artist"] else "") +
+        f'</div></div><div class="{"up" if (m["change7"] or 0)>=0 else "down"}">'
+        + ("—" if m["change7"] is None else f"{m['change7']:+.1f}%")
+        + "</div></a></li>"
+        for m in movers
+    )
+    cost_html = "\n".join(
+        f'<a class="collect-card" href="{c["href"]}"><img src="{e(c["image"])}" alt="">'
+        f'<div class="collect-card-copy"><strong>{e(c["name"])}</strong>'
+        f'<div class="muted">{e(c["set"])} · {e(c["number"])}</div>'
+        f'<div class="collect-price">${(c["spot"] or 0):.2f}</div></div></a>'
+        for c in costly
+    )
+    set_html = "\n".join(
+        f'<a class="item" href="/collectibles/sets/{e(s)}.html"><div style="font-weight:700">{e(s)}</div>'
+        f'<div class="link">{n} cards →</div></a>'
+        for s, n in sets.most_common(12)
+    )
+    return head(
+        "Collectibles, prices, and card info | Pokémon Decklists",
+        "Pokémon TCG collectibles: price history, trends, set pages, and card info with TCGPlayer affiliate buy links.",
+        "/collectibles/",
+    ) + header("collect") + f"""
+    <main class="single">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / Collectibles</div>
+        <h2>Collectibles</h2>
+        <p>The other half of the site. Singles that posted in August–September 2026 lists, with public TCGPlayer market history via Limitless, card facts, and affiliate buy links.</p>
+        <div class="collect-jump">
+          <a class="home-ghost" href="/price-tracker.html">Price tracker</a>
+          <a class="home-ghost" href="/collectibles/cards/">Card catalog</a>
+          <a class="home-ghost" href="/collectibles/sets/">Sets</a>
+          <a class="home-ghost" href="/collectibles/movers.html">Movers</a>
+        </div>
+        <section style="margin-top:22px">
+          <div class="section-title"><h3>Highest market</h3><div class="muted">{len(rows)} tracked singles</div></div>
+          <div class="collect-grid">{cost_html}</div>
+        </section>
+        <section style="margin-top:22px">
+          <div class="section-title"><h3>Biggest 7-day moves</h3><a href="/collectibles/movers.html">All movers →</a></div>
+          <ul class="list">{mover_html}</ul>
+        </section>
+        <section style="margin-top:22px">
+          <div class="section-title"><h3>Sets</h3><a href="/collectibles/sets/">All sets →</a></div>
+          <ul class="list">{set_html}</ul>
+        </section>
+        <p class="amazon-disclosure-line">TCGplayer links use partner ID 7670706 / 1780961. As an Amazon Associate I earn from qualifying purchases on shop pages.</p>
+      </div>
+    </main>
+""" + footer()
+
+
+def page_catalog():
+    rows = price_records()
+    sets = sorted({r["set"] for r in rows})
+    opts = "\n".join(f'<option value="{e(s)}">{e(s)}</option>' for s in sets)
+    payload = json.dumps(
+        [{k: r[k] for k in ("name", "set", "number", "image", "spot", "change7", "href", "artist", "kind")} for r in rows],
+        ensure_ascii=False,
+    )
+    return head(
+        "Pokémon card catalog | Collectibles",
+        "Browse Pokémon TCG singles with market prices, 7-day trends, and TCGPlayer affiliate links.",
+        "/collectibles/cards/",
+        extra='<script src="/js/collectibles.js" defer></script>',
+    ) + header("collect") + f"""
+    <main class="single">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Cards</div>
+        <h2>Card catalog</h2>
+        <p>Filter the tracked singles. Open a card for history, artist, type line, and the lists it posted in.</p>
+        <form class="site-search" role="search" onsubmit="return false">
+          <label class="site-search-label" for="collect-q">Filter collectibles</label>
+          <div class="site-search-row">
+            <input id="collect-q" type="search" placeholder="Iono, MEG, 5ban, Dragapult…" />
+            <select id="collect-set" aria-label="Set">
+              <option value="">All sets</option>
+              {opts}
+            </select>
+          </div>
+        </form>
+        <p id="collect-status" class="muted">{len(rows)} cards</p>
+        <div id="collect-grid" class="collect-grid"></div>
+        <script type="application/json" id="collect-data">{payload}</script>
+        <p class="amazon-disclosure-line">Every card page includes a TCGPlayer affiliate buy link (partner 7670706 / 1780961).</p>
+      </div>
+    </main>
+""" + footer()
+
+
+def page_movers():
+    rows = price_records()
+    up = [r for r in rows if (r["change7"] or 0) > 0]
+    down = [r for r in rows if (r["change7"] or 0) < 0]
+    up.sort(key=lambda r: -(r["change7"] or 0))
+    down.sort(key=lambda r: (r["change7"] or 0))
+    def block(title, items):
+        lis = "\n".join(
+            f'<li><a class="item" href="{m["href"]}"><div><div style="font-weight:700">{e(m["name"])}</div>'
+            f'<div class="muted">{e(m["set"])} {e(m["number"])} · ${(m["spot"] or 0):.2f}</div></div>'
+            f'<div class="{"up" if (m["change7"] or 0)>=0 else "down"}">{m["change7"]:+.1f}%</div></a></li>'
+            for m in items[:16]
+        )
+        return f'<section style="margin-top:22px"><div class="section-title"><h3>{title}</h3></div><ul class="list">{lis}</ul></section>'
+    return head(
+        "Card price movers | Collectibles",
+        "Biggest 7-day Pokémon TCG price moves from public TCGPlayer snapshots.",
+        "/collectibles/movers.html",
+    ) + header("collect") + f"""
+    <main class="single">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Movers</div>
+        <h2>Price movers</h2>
+        <p>7-day percent change on tracked singles. Tiny spots under a nickel are skipped so a $0.02 print does not look like a 4,000% spike.</p>
+        {block("On the way up", up)}
+        {block("On the way down", down)}
+      </div>
+    </main>
+""" + footer()
+
+
+def page_sets_index():
+    rows = price_records()
+    grouped = defaultdict(list)
+    for r in rows:
+        grouped[r["set"]].append(r)
+    items = []
+    for s, cards in sorted(grouped.items(), key=lambda kv: -len(kv[1])):
+        top = max((c.get("spot") or 0) for c in cards)
+        items.append(
+            f'<li><a class="item" href="/collectibles/sets/{e(s)}.html"><div>'
+            f'<div style="font-weight:700">{e(s)}</div>'
+            f'<div class="muted">{len(cards)} tracked singles · top ${top:.2f}</div></div>'
+            f'<div class="link">Open →</div></a></li>'
+        )
+    return head(
+        "Pokémon TCG sets | Collectibles",
+        "Pokémon TCG set pages with market prices and affiliate buy links.",
+        "/collectibles/sets/",
+    ) + header("collect") + f"""
+    <main class="single">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Sets</div>
+        <h2>Sets</h2>
+        <p>Set codes from the August–September 2026 lists. Open a set for the singles we track.</p>
+        <ul class="list">{"".join(items)}</ul>
+      </div>
+    </main>
+""" + footer()
+
+
+def page_set(setc: str, cards: list[dict]) -> str:
+    grid = "\n".join(
+        f'<a class="collect-card" href="{c["href"]}"><img src="{e(c["image"])}" alt="">'
+        f'<div class="collect-card-copy"><strong>{e(c["name"])}</strong>'
+        f'<div class="muted">#{e(c["number"])}' + (f' · {e(c["artist"])}' if c.get("artist") else "") +
+        f'</div><div class="collect-price">${(c["spot"] or 0):.2f}</div></div></a>'
+        for c in sorted(cards, key=lambda x: -(x["spot"] or 0))
+    )
+    return head(
+        f"{setc} prices and card info | Collectibles",
+        f"Pokémon TCG {setc} singles with market prices and TCGPlayer affiliate links.",
+        f"/collectibles/sets/{setc}.html",
+    ) + header("collect") + f"""
+    <main class="single">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / <a href="/collectibles/sets/">Sets</a> / {e(setc)}</div>
+        <h2>{e(setc)}</h2>
+        <p>{len(cards)} tracked singles from this set that posted in recent lists.</p>
+        <div class="collect-grid">{grid}</div>
+      </div>
+    </main>
+""" + footer()
+
+
+def page_card(row: dict) -> str:
+    lists = decks_with_card(row["set"], row["number"], 10)
+    used = "\n".join(
+        f'<li><a class="item" href="{href_list(lst)}"><div style="font-weight:700">{e(clean(lst.get("title")))}</div>'
+        f'<div class="muted">{e(lst.get("date"))} · {e(clean(lst.get("event")))}</div></a></li>'
+        for lst in lists
+    ) or '<p class="muted">No posted lists tagged this print yet.</p>'
+    facts = []
+    if row.get("kind"):
+        facts.append(row["kind"])
+    if row.get("stage"):
+        facts.append(row["stage"])
+    if row.get("ptype"):
+        facts.append(row["ptype"])
+    if row.get("hp"):
+        facts.append(f'{row["hp"]} HP')
+    if row.get("regulation"):
+        facts.append(f'{row["regulation"]} mark')
+    meta_line = " · ".join(facts)
+    artist = f'<p class="muted">Illustrated by {e(row["artist"])}.</p>' if row.get("artist") else ""
+    ch7 = "—" if row["change7"] is None else f'{row["change7"]:+.1f}%'
+    ch30 = "—" if row["change30"] is None else f'{row["change30"]:+.1f}%'
+    chart = spark_svg(row.get("series") or [])
+    src = f'<p class="muted">Public TCGPlayer snapshots via <a href="{e(row.get("url") or "#")}" target="_blank" rel="noopener">Limitless</a>. Fair use for commentary and research.</p>' if row.get("url") else ""
+    return head(
+        f'{row["name"]} ({row["set"]} {row["number"]}) price and info | Collectibles',
+        f'{row["name"]} {row["set"]} {row["number"]} market price, history, and TCGPlayer affiliate buy link.',
+        row["href"],
+        row["image"] if row.get("image") else "/img/pkdl-hero.jpg",
+    ) + header("collect") + f"""
+    <main class="single">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / <a href="/collectibles/cards/">Cards</a> / {e(row["name"])}</div>
+        <div class="price-hero collect-hero">
+          <img src="{e(row["image"])}" alt="{e(row["name"])}" />
+          <div>
+            <div class="muted">{e(row["set"])} · {e(row["number"])}</div>
+            <h2 style="margin:4px 0 8px">{e(row["name"])}</h2>
+            <p class="muted">{e(meta_line)}</p>
+            {artist}
+            <div class="big-price">${(row["spot"] or 0):.2f}</div>
+            <p class="muted">7-day {ch7} · 30-day {ch30}</p>
+            <p style="margin-top:10px"><a class="shop-buy" href="{row["buy"]}" target="_blank" rel="noopener nofollow sponsored">Buy on TCGplayer</a></p>
+          </div>
+        </div>
+        <section style="margin-top:22px">
+          <div class="section-title"><h3>Price history</h3><div class="muted">Market snapshots</div></div>
+          {chart}
+          {src}
+        </section>
+        <section style="margin-top:22px">
+          <div class="section-title"><h3>Posted in these lists</h3></div>
+          <ul class="list">{used}</ul>
+        </section>
+        <p class="amazon-disclosure-line">TCGplayer affiliate partner 7670706 / 1780961. As an Amazon Associate I earn from qualifying purchases on shop pages.</p>
+      </div>
+    </main>
+""" + footer()
+
+
+
+def page_prices():
+    rows = price_records()
+    slim = [{k: r[k] for k in ("name", "set", "number", "image", "spot", "change7", "change30", "series", "buy", "href")} for r in rows]
+    payload = json.dumps(slim, ensure_ascii=False)
+    movers = [m for m in sorted(rows, key=lambda r: abs(r["change7"] or 0), reverse=True) if m["change7"] is not None][:6]
+    mover_html = "\n".join(
+        f'<li><a class="item" href="{m["href"]}"><div><div style="font-weight:700">{e(m["name"])}</div><div class="muted">{e(m["set"])} {e(m["number"])}</div></div><div class="{"up" if (m["change7"] or 0)>=0 else "down"}">{m["change7"]:+.1f}%</div></a></li>'
         for m in movers
     )
     return head(
@@ -815,9 +1201,10 @@ def page_prices():
     ) + header("prices") + f"""
     <main class="single">
       <div class="card hero">
-        <div class="crumb"><a href="/">Home</a> / Price tracker</div>
+        <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Price tracker</div>
         <h2>Card price tracker</h2>
-        <p>Market history for cards that actually posted in August–September 2026 lists. Charts are public TCGPlayer snapshots republished via Limitless. Every buy button is an affiliate link.</p>
+        <p>Market history for singles that posted in August–September 2026 lists. Charts are public TCGPlayer snapshots via Limitless. Open a name for the collectible card page. Every buy button is an affiliate link.</p>
+        <p><a class="home-ghost" href="/collectibles/">Collectibles hub</a> · <a class="home-ghost" href="/collectibles/cards/">Catalog</a> · <a class="home-ghost" href="/collectibles/movers.html">Movers</a></p>
         <div class="section-title"><h3>Biggest 7-day moves</h3><div class="muted">From this tracker set</div></div>
         <ul class="list">{mover_html}</ul>
         <div id="price-focus"></div>
@@ -910,6 +1297,7 @@ GUIDES = [
     ("locals", "Locals", "League Challenges and store cups. Post a list the same way OPDB posts locals."),
     ("limitless", "Limitless", "Where these tables come from: Limitless TCG and Limitless Play."),
     ("constructed", "Constructed", "60 cards, 4-of, Basic Energy unlimited. Pocket is the 20-card cousin."),
+    ("collectibles", "Collectibles and prices", "How the price tracker, card pages, and TCGPlayer market history work."),
     ("championship-series", "Championship Series", "2026 Play! Pokémon circuit after rotation."),
     ("rotation-2026", "2026 rotation", "G-mark cards left Standard on 26 March (Live) / 10 April (paper)."),
 ]
@@ -1091,7 +1479,7 @@ def page_privacy():
           <h3>Affiliate partnerships</h3>
           <p>Some links on this site are affiliate links. If you buy through them, we may earn a commission. That does not change the price you pay.</p>
           <p><strong>Amazon.</strong> We are an Amazon Associate. The <a href="/shop/">Shop</a> links to Amazon for sleeves, dice, playmats, deck boxes, and table extras, and we earn from qualifying purchases.</p>
-          <p><strong>TCGplayer.</strong> We are a TCGplayer affiliate (Impact partner 7670706 / 1780961). Buy links on decklists and the price tracker go to TCGplayer, and we may earn a commission if you purchase after clicking them.</p>
+          <p><strong>TCGplayer.</strong> We are a TCGplayer affiliate (Impact partner 7670706 / 1780961). Buy links on decklists, the price tracker, and collectibles card pages go to TCGplayer, and we may earn a commission if you purchase after clicking them.</p>
         </section>
         <section>
           <h3>Analytics</h3>
@@ -1131,6 +1519,12 @@ def page_search():
             for x in rows
         )
         groups.append(f'<section class="search-group" data-search-group><div class="section-title"><h3>{e(f["name"])}</h3></div><ul class="list">{items}</ul></section>')
+    priced = price_records()[:40]
+    card_items = "\n".join(
+        f'<li data-q="{e(r["name"]+" "+r["set"]+" "+r["number"]+" collectible price")}"><a class="item" href="{r["href"]}"><div style="font-weight:700">{e(r["name"])}</div><div class="muted">{e(r["set"])} {e(r["number"])}</div></a></li>'
+        for r in priced
+    )
+    groups.append(f'<section class="search-group" data-search-group><div class="section-title"><h3>Collectibles</h3></div><ul class="list">{card_items}</ul></section>')
     return head("Search PKMN decklists | Pokémon Decklists", "Search Pokémon TCG decklists by format, player, archetype, or event.", "/search.html") + header("search") + f"""
     <main class="single">
       <div class="card hero">
@@ -1180,13 +1574,17 @@ def extras():
     )
     urls = [
         "/", "/formats/", "/format.html", "/events.html", "/tier-list.html",
-        "/price-tracker.html", "/shop/", "/guides/", "/privacy.html", "/search.html",
+        "/price-tracker.html", "/collectibles/", "/collectibles/cards/", "/collectibles/sets/",
+        "/collectibles/movers.html", "/shop/", "/guides/", "/privacy.html", "/search.html",
     ]
     urls += [f"/formats/{f['id']}.html" for f in FORMATS]
     urls += [f"/shop/{k}.html" for k in SHOP]
     urls += [f"/guides/{s}.html" for s, _, _ in GUIDES]
     urls += [f"/guides/types/{k}.html" for k, _, _ in TYPES]
     urls += [href_list(x) for x in LISTS]
+    for row in price_records():
+        urls.append(row["href"])
+        urls.append(f"/collectibles/sets/{row['set']}.html")
     body = "\n".join(f"  <url><loc>{CANON}{u}</loc><lastmod>{NOW}</lastmod></url>" for u in urls)
     (ROOT / "sitemap.xml").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{body}\n</urlset>\n'
@@ -1212,6 +1610,17 @@ def main():
         write(f"decklists/{lst['format']}/{lst['id']}.html", page_list(lst))
     write("tier-list.html", page_tier())
     write("price-tracker.html", page_prices())
+    write("collectibles/index.html", page_collectibles_hub())
+    write("collectibles/cards/index.html", page_catalog())
+    write("collectibles/sets/index.html", page_sets_index())
+    write("collectibles/movers.html", page_movers())
+    priced = price_records()
+    by_set = defaultdict(list)
+    for row in priced:
+        write(f"collectibles/cards/{card_file(row['set'], row['number'])}.html", page_card(row))
+        by_set[row["set"]].append(row)
+    for setc, cards in by_set.items():
+        write(f"collectibles/sets/{setc}.html", page_set(setc, cards))
     write("shop/index.html", page_shop_index())
     for key in SHOP:
         write(f"shop/{key}.html", page_shop_cat(key))
