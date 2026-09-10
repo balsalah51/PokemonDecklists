@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+
 Sitemap: https://pokemondecklists.com/sitemap.xml
