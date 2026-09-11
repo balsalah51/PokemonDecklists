@@ -288,7 +288,7 @@
         if (!row) return "<div class=\"muted\">Choose a print.</div>";
         var ch = row.change7;
         return (
-          '<a class="compare-col" href="' +
+          '<div class="compare-pane"><a class="compare-col" href="' +
           row.href +
           '"><img src="' +
           (row.image || "") +
@@ -309,7 +309,7 @@
           "</div></a>" +
           '<a class="shop-buy" href="' +
           row.buy +
-          '" target="_blank" rel="noopener nofollow sponsored">Buy on TCGplayer</a>'
+          '" target="_blank" rel="noopener nofollow sponsored">Buy on TCGplayer</a></div>'
         );
       }
       out.innerHTML = '<div class="compare-grid">' + col(left) + col(right) + "</div>";

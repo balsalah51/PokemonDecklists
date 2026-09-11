@@ -21,7 +21,7 @@ CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
 NOW = "2026-09-11"
-CSS_V = "pkdl-6"
+CSS_V = "pkdl-7"
 
 TYPES = [
     ("grass", "Grass", "#4c9a2a"),

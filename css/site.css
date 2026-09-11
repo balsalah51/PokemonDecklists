@@ -970,6 +970,8 @@ h1.page-title,.hero h1.page-title{
 .binder-qty{font-size:12px;font-weight:700;color:var(--muted)}
 .binder-qty input,.alert-row input{width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--line);font:inherit}
 .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.compare-pane{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.compare-pane .shop-buy{width:auto}
 .compare-col{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:inherit;align-items:flex-start}
 .compare-col img{width:180px;height:auto;border-radius:10px;background:#eee}
 .partner-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
