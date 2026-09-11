@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
   <ShortName>Pokémon Decklists</ShortName>
-  <Description>Search PKMN decklists</Description>
-  <Url type="text/html" template="https://pokemondecklists.com/search.html?q={searchTerms}"/>
+  <Description>Search Pokémon TCG decklists and cards</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image width="16" height="16" type="image/png">https://pokemondecklists.com/img/pkdl-logo-48.png</Image>
+  <Url type="text/html" method="get" template="https://pokemondecklists.com/search.html?q={searchTerms}"/>
 </OpenSearchDescription>

@@ -20,7 +20,8 @@ SHORT = "PKMN"
 CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
-NOW = "2026-09-09"
+NOW = "2026-09-11"
+CSS_V = "pkdl-4"
 
 TYPES = [
     ("grass", "Grass", "#4c9a2a"),
@@ -134,6 +135,142 @@ def e(s) -> str:
     return htmlmod.escape("" if s is None else htmlmod.unescape(str(s)))
 
 
+def ld_script(obj) -> str:
+    return (
+        '  <script type="application/ld+json">'
+        + json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+        + "</script>\n"
+    )
+
+
+def short_title(title: str) -> str:
+    return re.split(r"\s+\|\s+", title or "")[0].strip() or SITE
+
+
+def site_graph() -> dict:
+    return {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": CANON + "/#org",
+                "name": SITE,
+                "alternateName": ["PKMN", "Pokemon Decklists"],
+                "url": CANON + "/",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": CANON + "/img/pkdl-logo-192.png",
+                    "width": 192,
+                    "height": 192,
+                },
+                "description": "Fan site for Pokémon TCG decklists, format hubs, and card prices. Not affiliated with Nintendo or The Pokémon Company.",
+            },
+            {
+                "@type": "WebSite",
+                "@id": CANON + "/#site",
+                "name": SITE,
+                "url": CANON + "/",
+                "inLanguage": "en-US",
+                "publisher": {"@id": CANON + "/#org"},
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": CANON + "/search.html?q={search_term_string}",
+                    "query-input": "required name=search_term_string",
+                },
+            },
+        ],
+    }
+
+
+def crumbs_for(path: str, title: str) -> list[tuple[str, str]]:
+    path = path or "/"
+    if path == "/":
+        return []
+    out = [("Home", "/")]
+    parts = [p for p in path.strip("/").split("/") if p]
+    if not parts:
+        return out
+    leaf = parts[-1].replace(".html", "")
+    page = short_title(title)
+
+    if parts[0] == "formats":
+        out.append(("Formats", "/formats/"))
+        if len(parts) > 1:
+            out.append((FMT.get(leaf, {}).get("name") or page, path))
+        return out
+    if parts[0] == "decklists" and len(parts) >= 2:
+        fmt_id = parts[1]
+        out.append(("Formats", "/formats/"))
+        out.append((FMT.get(fmt_id, {}).get("name") or fmt_id, f"/formats/{fmt_id}.html"))
+        out.append((page, path))
+        return out
+    if parts[0] == "collectibles":
+        out.append(("Collectibles", "/collectibles/"))
+        if len(parts) == 1:
+            return out
+        if parts[1].startswith("movers"):
+            out.append(("Price movers", "/collectibles/movers.html"))
+            return out
+        if parts[1] == "cards":
+            out.append(("Card catalog", "/collectibles/cards/"))
+            if len(parts) > 2:
+                out.append((page, path))
+            return out
+        if parts[1] == "sets":
+            out.append(("Sets", "/collectibles/sets/"))
+            if len(parts) > 2:
+                out.append((leaf, path))
+            return out
+        return out
+    if parts[0] == "shop":
+        out.append(("Shop", "/shop/"))
+        if len(parts) > 1:
+            out.append((SHOP_TITLES.get(leaf, page), path))
+        return out
+    if parts[0] == "guides":
+        out.append(("Guides", "/guides/"))
+        if len(parts) == 1:
+            return out
+        if parts[1] == "types" and len(parts) > 2:
+            out.append((TYPE_LABEL.get(leaf, page) + " type", path))
+            return out
+        out.append((page, path))
+        return out
+
+    singles = {
+        "tier-list.html": ("Tier list", "/tier-list.html"),
+        "price-tracker.html": ("Price tracker", "/price-tracker.html"),
+        "events.html": ("Events", "/events.html"),
+        "privacy.html": ("Privacy", "/privacy.html"),
+        "search.html": ("Search", "/search.html"),
+        "format.html": ("Format rules", "/format.html"),
+        "404.html": ("Page not found", "/404.html"),
+    }
+    if parts[0] in singles:
+        out.append(singles[parts[0]])
+    return out
+
+
+def crumb_ld(items: list[tuple[str, str]]) -> str:
+    if not items:
+        return ""
+    return ld_script(
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": i,
+                    "name": name,
+                    "item": CANON + href,
+                }
+                for i, (name, href) in enumerate(items, 1)
+            ],
+        }
+    )
+
+
 def aff(url: str) -> str:
     if "partner.tcgplayer.com" in url or "amzn.to" in url:
         return url
@@ -216,62 +353,121 @@ def nav(current: str = "") -> str:
     def a(href, label, key):
         cur = ' aria-current="page"' if current == key else ""
         return f'<a href="{href}"{cur}>{label}</a>'
-    return f"""      <nav aria-label="Primary">
-        {a("/tier-list.html", "Tier List", "tier")}
-        {a("/#recent", "Recent lists", "recent")}
+    return f"""      <nav id="site-nav" class="site-nav" aria-label="Primary">
         {a("/formats/", "Formats", "formats")}
+        {a("/tier-list.html", "Tier list", "tier")}
         {a("/collectibles/", "Collectibles", "collect")}
         {a("/price-tracker.html", "Prices", "prices")}
         {a("/events.html", "Events", "events")}
         {a("/guides/", "Guides", "guides")}
         {a("/shop/", "Shop", "shop")}
-        {a("/search.html", "Search", "search")}
-        <span class="discord-nav" title="Discord coming soon">Discord</span>
       </nav>"""
 
 
 def header(current: str = "") -> str:
-    return f"""    <header>
-      <a class="brand" href="/">
-        <img class="logo" src="/img/pkdl-avatar.png" width="56" height="56" alt="Pokémon Decklists" />
+    return f"""  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Pokémon Decklists home">
+        <img class="logo" src="/img/pkdl-avatar.png" width="48" height="48" alt="" />
         <div>
-          <h1>Pokémon Decklists</h1>
-          <div class="subtitle">PKMN decklists · Standard · Pocket · Gym Leader Challenge</div>
+          <p class="site-name">Pokémon Decklists</p>
+          <p class="subtitle">Standard · Pocket · Gym Leader Challenge</p>
         </div>
       </a>
+      <form class="header-search" method="get" action="/search.html" role="search">
+        <label class="visually-hidden" for="nav-q">Search decklists</label>
+        <input id="nav-q" type="search" name="q" placeholder="Search lists, cards, events" />
+        <button type="submit">Search</button>
+      </form>
+      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
 {nav(current)}
-    </header>"""
+    </div>
+  </header>
+  <div class="wrap">
+"""
 
 
 def footer(current: str = "") -> str:
-    return f"""    <footer>
-      © <span id="year"></span> Pokémon Decklists — Fan site, not affiliated with Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast.
-      As an Amazon Associate I earn from qualifying purchases.
-      <a href="/tier-list.html">Tier List</a> · <a href="/formats/">Formats</a> · <a href="/collectibles/">Collectibles</a> · <a href="/price-tracker.html">Prices</a> · <a href="/guides/">Guides</a> · <a href="/shop/">Shop</a> · <a href="/privacy.html">Privacy</a>
+    return """    <footer class="site-footer">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">Pokémon Decklists</p>
+          <p>Fan-made Pokémon TCG decklists, format hubs, and card prices. Not affiliated with Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast.</p>
+        </div>
+        <nav aria-label="Compete">
+          <p class="footer-head">Compete</p>
+          <a href="/formats/">Formats</a>
+          <a href="/tier-list.html">Tier list</a>
+          <a href="/events.html">Events</a>
+          <a href="/guides/">Guides</a>
+        </nav>
+        <nav aria-label="Collect">
+          <p class="footer-head">Collect</p>
+          <a href="/collectibles/">Collectibles</a>
+          <a href="/price-tracker.html">Price tracker</a>
+          <a href="/collectibles/cards/">Card catalog</a>
+          <a href="/shop/">Shop</a>
+        </nav>
+        <nav aria-label="Site">
+          <p class="footer-head">Site</p>
+          <a href="/search.html">Search</a>
+          <a href="/privacy.html">Privacy</a>
+          <span class="discord-nav" title="Discord coming soon">Discord — invite soon</span>
+        </nav>
+      </div>
+      <p class="footer-legal">© <span id="year"></span> Pokémon Decklists. As an Amazon Associate I earn from qualifying purchases. TCGplayer links are affiliate links.</p>
     </footer>
   </div>
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-  <script src="/js/tcgplayer-config.js"></script>
-  <script src="/js/tcgplayer.js"></script>
-  <script src="/js/site.js"></script>
+  <script src="/js/tcgplayer-config.js" defer></script>
+  <script src="/js/tcgplayer.js" defer></script>
+  <script src="/js/site.js" defer></script>
 </body>
 </html>"""
 
 
-def head(title: str, desc: str, path: str, image: str = "/img/pkdl-hero.jpg", extra: str = "") -> str:
+def head(
+    title: str,
+    desc: str,
+    path: str,
+    image: str = "/img/pkdl-hero.jpg",
+    extra: str = "",
+    og_type: str = "website",
+    image_alt: str = "Pokémon Decklists — Pokémon TCG decklists by format",
+    published: str | None = None,
+    robots: str = "index, follow, max-image-preview:large",
+) -> str:
     url = CANON + path
     img = image if image.startswith("http") else CANON + image
+    hero = str(image).endswith("pkdl-hero.jpg")
+    img_w, img_h = ("1920", "1080") if hero else ("367", "512")
+    crumbs = crumbs_for(path, title)
+    dates = ""
+    if published:
+        dates = (
+            f'  <meta property="article:published_time" content="{e(published)}" />\n'
+            f'  <meta property="og:updated_time" content="{e(published)}" />\n'
+        )
     return f"""<!doctype html>
-<html lang="en">
+<html lang="en-US">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>{e(title)}</title>
   <meta name="description" content="{e(desc)}" />
-  <link rel="stylesheet" href="/css/site.css?v=pkdl-3" />
+  <meta name="author" content="Pokémon Decklists" />
+  <meta name="color-scheme" content="light" />
+  <link rel="stylesheet" href="/css/site.css?v={CSS_V}" />
   <link rel="canonical" href="{url}" />
-  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com" />
+  <link rel="dns-prefetch" href="https://images.pokemontcg.io" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" />
+  <meta name="robots" content="{e(robots)}" />
   <meta name="theme-color" content="#c62828" />
+  <meta name="application-name" content="Pokémon Decklists" />
+  <meta name="apple-mobile-web-app-title" content="PKMN Decklists" />
+  <meta name="format-detection" content="telephone=no" />
   <link rel="icon" href="/img/pkdl-logo-192.png" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="/img/pkdl-logo-192.png" sizes="192x192" />
   <link rel="manifest" href="/site.webmanifest" />
@@ -279,20 +475,25 @@ def head(title: str, desc: str, path: str, image: str = "/img/pkdl-hero.jpg", ex
   <meta name="google-adsense-account" content="{ADS}" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADS}"
      crossorigin="anonymous"></script>
+  <meta property="og:locale" content="en_US" />
   <meta property="og:site_name" content="Pokémon Decklists" />
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content="{e(og_type)}" />
   <meta property="og:title" content="{e(title)}" />
   <meta property="og:description" content="{e(desc)}" />
   <meta property="og:url" content="{url}" />
   <meta property="og:image" content="{img}" />
-  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:image:alt" content="{e(image_alt)}" />
+  <meta property="og:image:width" content="{img_w}" />
+  <meta property="og:image:height" content="{img_h}" />
+{dates}  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="{e(title)}" />
   <meta name="twitter:description" content="{e(desc)}" />
   <meta name="twitter:image" content="{img}" />
-  {extra}
+  <meta name="twitter:image:alt" content="{e(image_alt)}" />
+{ld_script(site_graph())}{crumb_ld(crumbs)}  {extra}
 </head>
 <body>
-  <div class="wrap">
+  <a class="skip-link" href="#main">Skip to content</a>
 """
 
 
@@ -307,7 +508,7 @@ def recent_item(lst: dict) -> str:
     meta = f"{clean(lst.get('event') or '')} · {clean(lst.get('notes') or '')}"
     return f"""            <li>
               <a class="recent-item {cls}" href="{href_list(lst)}">
-                <img class="recent-leader" src="{e(img)}" alt="" />
+                <img class="recent-leader" src="{e(img)}" alt="" width="40" height="56" loading="lazy" />
                 <div class="recent-copy">
                   <div class="who">{e(who)}</div>
                   <div class="muted meta">{e(meta)}</div>
@@ -373,32 +574,70 @@ def write(path: str, content: str):
 def page_index():
     recent = sorted(LISTS, key=lambda x: (x.get("date") or "", -int(x.get("placing") or 99)), reverse=True)[:56]
     teasers = collect_teaser_html()
-    extra = """  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Pokémon Decklists","alternateName":["PKMN","Pokemon Decklists"],"url":"https://pokemondecklists.com/","potentialAction":{"@type":"SearchAction","target":"https://pokemondecklists.com/search.html?q={search_term_string}","query-input":"required name=search_term_string"}}</script>"""
+    extra = ld_script(
+        {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "Pokémon TCG Decklists",
+            "url": CANON + "/",
+            "isPartOf": {"@id": CANON + "/#site"},
+            "about": "Pokémon Trading Card Game",
+            "mainEntity": {
+                "@type": "ItemList",
+                "name": "Pokémon TCG formats",
+                "numberOfItems": len(FORMATS),
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": i,
+                        "url": CANON + f"/formats/{f['id']}.html",
+                        "name": f["name"],
+                    }
+                    for i, f in enumerate(FORMATS, 1)
+                ],
+            },
+        }
+    )
     cards = "\n".join(
         f"""            <a class="format-card" href="/formats/{f['id']}.html">
-              <img src="{f['img']}" alt="{e(f['name'])} format" />
-              <div class="caption"><strong>{e(f['name'])}</strong><div class="muted">{e(f['kicker'])}</div></div>
+              <img src="{f['img']}" alt="{e(f['name'])} Pokémon TCG format" width="640" height="360" loading="lazy" />
+              <div class="caption"><strong>{e(f['name'])}</strong><div class="muted">{e(f['kicker'])} · {e(f['size'])}</div></div>
             </a>"""
         for f in FORMATS
     )
+    n_cards = len(price_records())
     return head(
-        "Pokémon TCG Decklists (PKMN) | Pokémon Decklists",
-        "Pokémon TCG decklists by format: Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. August and September 2026 lists, price tracker, and shop.",
+        "Pokémon TCG Decklists | Standard, Pocket & GLC",
+        "Tournament Pokémon TCG decklists by format — Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. August–September 2026 lists, card prices, and shop.",
         "/",
         extra=extra,
+        image_alt="Vintage-style fire dragon banner for Pokémon Decklists",
     ) + header() + f"""
-    <main class="single home" role="main">
-      <section class="home-splash" aria-label="Pokémon Decklists">
-        <img class="home-splash-bg" src="/img/pkdl-hero.jpg" alt="Orange fire dragon in vintage Pokémon TCG style, Pokémon Decklists banner" width="1920" height="1080" fetchpriority="high" decoding="async">
+    <main id="main" class="single home">
+      <section class="home-splash">
+        <img class="home-splash-bg" src="/img/pkdl-hero.jpg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
         <div class="home-splash-copy">
-          <h2>Pokémon Decklists</h2>
+          <p class="splash-kicker">Pokémon Trading Card Game</p>
+          <h1>Pokémon Decklists</h1>
+          <p class="splash-lead">Tournament lists by format. Standard, Pocket, and Gym Leader Challenge first.</p>
           <div class="formats">
             <span>Standard</span>
             <span>Pocket</span>
             <span>Gym Leader Challenge</span>
           </div>
+          <div class="splash-cta">
+            <a class="btn-primary" href="#recent">Browse lists</a>
+            <a class="btn-ghost-light" href="/collectibles/">Card prices</a>
+          </div>
         </div>
       </section>
+
+      <ul class="home-stats" aria-label="Site snapshot">
+        <li><strong>{len(LISTS):,}</strong><span>tournament lists</span></li>
+        <li><strong>5</strong><span>formats</span></li>
+        <li><strong>{n_cards}</strong><span>priced singles</span></li>
+        <li><strong>Aug–Sep 2026</strong><span>current window</span></li>
+      </ul>
 
       <a class="events-banner" id="events" href="/events.html">
         <div>
@@ -413,8 +652,8 @@ def page_index():
         <section class="home-half home-half-play" id="competitive">
           <div class="home-half-head">
             <p class="kicker">Competitive</p>
-            <h3>Decklists</h3>
-            <p>{len(LISTS)} August–September 2026 lists, organized by format.</p>
+            <h2>Decklists</h2>
+            <p>{len(LISTS):,} August–September 2026 lists, organized by format.</p>
           </div>
           <div class="home-half-body">
             <a class="half-link" href="#formats"><strong>Formats</strong><span>Types, color combos, recent lists</span></a>
@@ -426,7 +665,7 @@ def page_index():
         <section class="home-half home-half-collect" id="collectibles-home">
           <div class="home-half-head">
             <p class="kicker">Collectibles</p>
-            <h3>Prices &amp; card info</h3>
+            <h2>Prices &amp; card info</h2>
             <p>Market history, set pages, and TCGPlayer affiliate buys for singles.</p>
           </div>
           <div class="home-half-body">
@@ -438,35 +677,6 @@ def page_index():
           </div>
         </section>
       </div>
-
-      <nav class="home-big3" aria-label="Main sections">
-        <a class="home-big home-big-tier" href="/tier-list.html">
-          <span class="home-big-title">Tier List</span>
-          <span class="home-big-note">Standard after Worlds 2026</span>
-        </a>
-        <a class="home-big home-big-recent" href="#recent">
-          <span class="home-big-title">Recent Lists</span>
-          <span class="home-big-note">{len(LISTS)} lists this window</span>
-        </a>
-        <a class="home-big home-big-formats" href="#formats">
-          <span class="home-big-title">Formats</span>
-          <span class="home-big-note">Standard, Pocket, GLC, Expanded…</span>
-        </a>
-        <a class="home-big home-big-prices" href="/collectibles/">
-          <span class="home-big-title">Collectibles</span>
-          <span class="home-big-note">Prices, card info, set pages</span>
-        </a>
-        <a class="home-big home-big-shop" href="/shop/">
-          <span class="home-big-title">Shop</span>
-          <span class="home-big-note">Sleeves, dice, playmats, deck boxes</span>
-        </a>
-        <div class="home-big home-big-discord discord-placeholder">
-          <div>
-            <div class="home-big-title">Discord</div>
-            <div class="note">Placeholder — invite coming soon. No link yet.</div>
-          </div>
-        </div>
-      </nav>
 
       <form class="site-search home-search" method="get" action="/search.html" role="search">
         <label class="site-search-label" for="home-q">Search PKMN decklists</label>
@@ -536,10 +746,10 @@ def page_formats_index():
         for f in FORMATS
     )
     return head("Pokémon TCG formats | Pokémon Decklists", "Standard, Expanded, Gym Leader Challenge, Pocket, and Unlimited.", "/formats/") + header("formats") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Formats</div>
-        <h2>Formats</h2>
+        <h1 class="page-title">Formats</h1>
         <p>Pokémon TCG is organized by format, not by a leader. Each page shows the types posting, the popular color combos, then the August–September 2026 lists.</p>
         <div class="format-cards">{cards}</div>
       </div>
@@ -555,18 +765,29 @@ def page_format(fmt: dict) -> str:
         for key, lab, hx in TYPES if type_c.get(key)
     ) or '<p class="muted">Type breakdown fills in from posted energy.</p>'
     return head(
-        f"{fmt['name']} decklists | Pokémon Decklists",
-        f"{fmt['blurb']} Recent {fmt['name']} lists from August and September 2026.",
+        f"{fmt['name']} Pokémon TCG Decklists (2026)",
+        f"{fmt['blurb']} {len(rows)} recent {fmt['name']} lists from August and September 2026, grouped by type and color combo.",
         f"/formats/{fmt['id']}.html",
         fmt["img"],
+        extra=ld_script(
+            {
+                "@context": "https://schema.org",
+                "@type": "CollectionPage",
+                "name": f"{fmt['name']} Pokémon TCG decklists",
+                "url": CANON + f"/formats/{fmt['id']}.html",
+                "about": fmt["name"],
+                "numberOfItems": len(rows),
+            }
+        ),
+        image_alt=f"{fmt['name']} Pokémon TCG format",
     ) + header("formats") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/formats/">Formats</a> / {e(fmt['name'])}</div>
         <div class="leader-hero">
           <img src="{fmt['img']}" alt="{e(fmt['name'])} original artwork" />
           <div>
-            <h2>{e(fmt['name'])}</h2>
+            <h1 class="page-title">{e(fmt['name'])}</h1>
             <p>{e(fmt['blurb'])}</p>
             <div class="stat-row">
               <span class="pill">{e(fmt['size'])}</span>
@@ -594,7 +815,7 @@ def page_format(fmt: dict) -> str:
         <section class="deck-index" id="recent" style="margin-top:22px">
           <div class="section-title"><h3>Recent lists</h3><div class="muted">{len(rows)} lists</div></div>
           <div class="list-filters" data-hub-filters>
-            <input data-filter="q" placeholder="Player, archetype, event" />
+            <input data-filter="q" placeholder="Player, archetype, event" aria-label="Filter lists" />
             <select data-filter="when">
               <option value="">Any date</option>
               <option value="sep">September 2026</option>
@@ -676,16 +897,36 @@ def page_list(lst: dict) -> str:
     img = first.get("image") or fmt["img"]
     arch = clean(lst.get("archetype") or "")
     buy_list = aff("https://www.tcgplayer.com/search/pokemon/product?q=" + quote(arch or "pokemon") + "&productLineName=pokemon")
+    list_ld = ld_script(
+        {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": clean(lst.get("title") or arch),
+            "datePublished": lst.get("date") or NOW,
+            "inLanguage": "en-US",
+            "about": arch or fmt["name"],
+            "articleSection": fmt["name"],
+            "author": {"@type": "Person", "name": clean(lst.get("player") or lst.get("title") or "Player")},
+            "publisher": {"@id": CANON + "/#org"},
+            "mainEntityOfPage": CANON + href_list(lst),
+            "image": img if str(img).startswith("http") else CANON + str(img),
+            "description": f"{fmt['name']} Pokémon TCG decklist from {clean(lst.get('event') or 'tournament')} on {lst.get('date') or NOW}.",
+        }
+    )
     return head(
-        f"{clean(lst.get('title'))} | {fmt['name']} | PKMN",
-        f"{fmt['name']} decklist — {clean(lst.get('event'))} · {lst.get('date')}",
+        f"{clean(lst.get('title'))} | {fmt['name']} Decklist",
+        f"{fmt['name']} Pokémon TCG decklist: {clean(lst.get('title'))}. {clean(lst.get('event'))} · {lst.get('date')}. Full 60-card list with pictures.",
         href_list(lst),
         img,
+        extra=list_ld,
+        og_type="article",
+        image_alt=arch or clean(lst.get("title") or "Pokémon TCG decklist"),
+        published=lst.get("date") or NOW,
     ).replace("<body>", f'<body class="{cls}">') + header() + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/formats/">Formats</a> / <a href="/formats/{lst['format']}.html">{e(fmt['name'])}</a> / Decklist</div>
-        <h2>{e(clean(lst.get('title')))}</h2>
+        <h1 class="page-title">{e(clean(lst.get('title')))}</h1>
         <p>{e(clean(lst.get('event')))} · {e(lst.get('date'))} · {e(lst.get('country') or '')} · {e(clean(lst.get('notes') or ''))}</p>
         <p class="muted">Source: <a href="{e(lst.get('source_url'))}" target="_blank" rel="noopener">{e(lst.get('source_url'))}</a>. Card pictures hosted by Limitless. Fair use of publicly posted tournament lists. Not affiliated with Nintendo or The Pokémon Company.</p>
         {curve_html(lst)}
@@ -753,14 +994,14 @@ def page_tier():
         </div>"""
         )
     return head(
-        "Standard Pokémon TCG tier list | Pokémon Decklists",
+        "Standard Pokémon TCG tier list after Worlds 2026",
         "Standard tier list after the 2026 World Championships in San Francisco, cross-checked with September Limitless Play cups.",
         "/tier-list.html",
     ) + header("tier") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Tier List</div>
-        <h2>Standard tier list</h2>
+        <h1 class="page-title">Standard tier list</h1>
         <p>Built from the 2026 World Championships Masters table (797 players, 28–30 Aug, San Francisco) plus September Limitless Play Standard cups. Pictures are from public lists, not a greatest-hits poster of popular cards.</p>
         <p class="muted">Updated {NOW}. Click a tile for a real list.</p>
         <div class="tier-board">
@@ -936,7 +1177,7 @@ def collect_teaser_html() -> str:
         cls = "up" if (ch or 0) >= 0 else "down"
         label = "—" if ch is None else f"{ch:+.1f}%"
         bits.append(
-            f'<a class="collect-teaser" href="{m["href"]}"><img src="{e(m["image"])}" alt="">'
+            f'<a class="collect-teaser" href="{m["href"]}"><img src="{e(m["image"])}" alt="{e(m["name"])}" width="36" height="50" loading="lazy">'
             f'<span><strong>{e(m["name"])}</strong><span class="{cls}">{label} 7d</span></span></a>'
         )
     bits.append("</div>")
@@ -957,7 +1198,7 @@ def page_collectibles_hub():
         for m in movers
     )
     cost_html = "\n".join(
-        f'<a class="collect-card" href="{c["href"]}"><img src="{e(c["image"])}" alt="">'
+        f'<a class="collect-card" href="{c["href"]}"><img src="{e(c["image"])}" alt="{e(c["name"])}" width="245" height="342" loading="lazy">'
         f'<div class="collect-card-copy"><strong>{e(c["name"])}</strong>'
         f'<div class="muted">{e(c["set"])} · {e(c["number"])}</div>'
         f'<div class="collect-price">${(c["spot"] or 0):.2f}</div></div></a>'
@@ -973,10 +1214,10 @@ def page_collectibles_hub():
         "Pokémon TCG collectibles: price history, trends, set pages, and card info with TCGPlayer affiliate buy links.",
         "/collectibles/",
     ) + header("collect") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Collectibles</div>
-        <h2>Collectibles</h2>
+        <h1 class="page-title">Collectibles</h1>
         <p>The other half of the site. Singles that posted in August–September 2026 lists, with public TCGPlayer market history via Limitless, card facts, and affiliate buy links.</p>
         <div class="collect-jump">
           <a class="home-ghost" href="/price-tracker.html">Price tracker</a>
@@ -1016,10 +1257,10 @@ def page_catalog():
         "/collectibles/cards/",
         extra='<script src="/js/collectibles.js" defer></script>',
     ) + header("collect") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Cards</div>
-        <h2>Card catalog</h2>
+        <h1 class="page-title">Card catalog</h1>
         <p>Filter the tracked singles. Open a card for history, artist, type line, and the lists it posted in.</p>
         <form class="site-search" role="search" onsubmit="return false">
           <label class="site-search-label" for="collect-q">Filter collectibles</label>
@@ -1059,10 +1300,10 @@ def page_movers():
         "Biggest 7-day Pokémon TCG price moves from public TCGPlayer snapshots.",
         "/collectibles/movers.html",
     ) + header("collect") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Movers</div>
-        <h2>Price movers</h2>
+        <h1 class="page-title">Price movers</h1>
         <p>7-day percent change on tracked singles. Tiny spots under a nickel are skipped so a $0.02 print does not look like a 4,000% spike.</p>
         {block("On the way up", up)}
         {block("On the way down", down)}
@@ -1090,10 +1331,10 @@ def page_sets_index():
         "Pokémon TCG set pages with market prices and affiliate buy links.",
         "/collectibles/sets/",
     ) + header("collect") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Sets</div>
-        <h2>Sets</h2>
+        <h1 class="page-title">Sets</h1>
         <p>Set codes from the August–September 2026 lists. Open a set for the singles we track.</p>
         <ul class="list">{"".join(items)}</ul>
       </div>
@@ -1103,7 +1344,7 @@ def page_sets_index():
 
 def page_set(setc: str, cards: list[dict]) -> str:
     grid = "\n".join(
-        f'<a class="collect-card" href="{c["href"]}"><img src="{e(c["image"])}" alt="">'
+        f'<a class="collect-card" href="{c["href"]}"><img src="{e(c["image"])}" alt="{e(c["name"])}" width="245" height="342" loading="lazy">'
         f'<div class="collect-card-copy"><strong>{e(c["name"])}</strong>'
         f'<div class="muted">#{e(c["number"])}' + (f' · {e(c["artist"])}' if c.get("artist") else "") +
         f'</div><div class="collect-price">${(c["spot"] or 0):.2f}</div></div></a>'
@@ -1114,10 +1355,10 @@ def page_set(setc: str, cards: list[dict]) -> str:
         f"Pokémon TCG {setc} singles with market prices and TCGPlayer affiliate links.",
         f"/collectibles/sets/{setc}.html",
     ) + header("collect") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / <a href="/collectibles/sets/">Sets</a> / {e(setc)}</div>
-        <h2>{e(setc)}</h2>
+        <h1 class="page-title">{e(setc)}</h1>
         <p>{len(cards)} tracked singles from this set that posted in recent lists.</p>
         <div class="collect-grid">{grid}</div>
       </div>
@@ -1149,20 +1390,43 @@ def page_card(row: dict) -> str:
     ch30 = "—" if row["change30"] is None else f'{row["change30"]:+.1f}%'
     chart = spark_svg(row.get("series") or [])
     src = f'<p class="muted">Public TCGPlayer snapshots via <a href="{e(row.get("url") or "#")}" target="_blank" rel="noopener">Limitless</a>. Fair use for commentary and research.</p>' if row.get("url") else ""
+    offer = {
+        "@type": "Offer",
+        "url": row["buy"],
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+    }
+    if row.get("spot") is not None:
+        offer["price"] = f"{row['spot']:.2f}"
+    card_ld = ld_script(
+        {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": f'{row["name"]} ({row["set"]} {row["number"]})',
+            "image": row.get("image") or (CANON + "/img/pkdl-hero.jpg"),
+            "description": f'{row["name"]} Pokémon TCG card from {row["set"]}. Market price and tournament lists.',
+            "brand": {"@type": "Brand", "name": "Pokémon TCG"},
+            "sku": f'{row["set"]}-{row["number"]}',
+            "offers": offer,
+        }
+    )
     return head(
-        f'{row["name"]} ({row["set"]} {row["number"]}) price and info | Collectibles',
-        f'{row["name"]} {row["set"]} {row["number"]} market price, history, and TCGPlayer affiliate buy link.',
+        f'{row["name"]} ({row["set"]} {row["number"]}) Price & Card Info',
+        f'{row["name"]} {row["set"]} {row["number"]} market price, history, and TCGPlayer affiliate buy link. Pokémon TCG collectible.',
         row["href"],
         row["image"] if row.get("image") else "/img/pkdl-hero.jpg",
+        extra=card_ld,
+        og_type="product",
+        image_alt=row["name"],
     ) + header("collect") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / <a href="/collectibles/cards/">Cards</a> / {e(row["name"])}</div>
         <div class="price-hero collect-hero">
           <img src="{e(row["image"])}" alt="{e(row["name"])}" />
           <div>
             <div class="muted">{e(row["set"])} · {e(row["number"])}</div>
-            <h2 style="margin:4px 0 8px">{e(row["name"])}</h2>
+            <h1 class="page-title">{e(row["name"])}</h1>
             <p class="muted">{e(meta_line)}</p>
             {artist}
             <div class="big-price">${(row["spot"] or 0):.2f}</div>
@@ -1201,10 +1465,10 @@ def page_prices():
         "/price-tracker.html",
         extra='<script src="/js/prices.js" defer></script>',
     ) + header("prices") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Price tracker</div>
-        <h2>Card price tracker</h2>
+        <h1 class="page-title">Card price tracker</h1>
         <p>Market history for singles that posted in August–September 2026 lists. Charts are public TCGPlayer snapshots via Limitless. Open a name for the collectible card page. Every buy button is an affiliate link.</p>
         <p><a class="home-ghost" href="/collectibles/">Collectibles hub</a> · <a class="home-ghost" href="/collectibles/cards/">Catalog</a> · <a class="home-ghost" href="/collectibles/movers.html">Movers</a></p>
         <div class="section-title"><h3>Biggest 7-day moves</h3><div class="muted">From this tracker set</div></div>
@@ -1258,10 +1522,10 @@ def page_shop_index():
         </div>"""
         )
     return head("Shop | Sleeves, dice, playmats, deck boxes | Pokémon Decklists", "Pokémon TCG sleeves, dice, playmats, and deck boxes via Amazon. Same affiliate shop as One Piece Deck Base.", "/shop/") + header("shop") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Shop</div>
-        <h2>Shop</h2>
+        <h1 class="page-title">Shop</h1>
         <p>Same table gear and the same Amazon affiliate links as One Piece Deck Base. Open Amazon for live price and stock. 63×88 mm sleeves fit Pokémon cards.</p>
         {''.join(sections)}
         <p class="amazon-disclosure-line">As an Amazon Associate I earn from qualifying purchases.</p>
@@ -1273,10 +1537,10 @@ def page_shop_index():
 def page_shop_cat(key: str):
     title = SHOP_TITLES[key]
     return head(f"{title} | Shop | Pokémon Decklists", f"{title} for Pokémon TCG via Amazon affiliate links.", f"/shop/{key}.html") + header("shop") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/shop/">Shop</a> / {title}</div>
-        <h2>{title}</h2>
+        <h1 class="page-title">{title}</h1>
         <p>Same SKUs and amzn.to links as the OPDB shop.</p>
         <div class="shop-grid">{shop_cards(SHOP[key])}</div>
         <p class="amazon-disclosure-line">As an Amazon Associate I earn from qualifying purchases.</p>
@@ -1315,10 +1579,10 @@ def page_guides_index():
         for key, lab, _ in TYPES
     )
     return head("Pokémon TCG guides | PKMN", "Guides for Pokémon TCG formats, regulation marks, Worlds 2026, and types, linking to real decklists.", "/guides/") + header("guides") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Guides</div>
-        <h2>Pokémon TCG guides</h2>
+        <h1 class="page-title">Pokémon TCG guides</h1>
         <p>Topic and type pages that link to the lists on this site. Same job as the OPDB guides, rewritten for Pokémon.</p>
         <section><div class="section-title"><h3>Topics</h3><div class="muted">Play! Pokémon / PKMN</div></div>
         <ul class="list">{topics}</ul></section>
@@ -1342,10 +1606,10 @@ def page_guide(slug, title, blurb):
     if slug == "expanded":
         related = [x for x in LISTS if x["format"] == "expanded"][:10]
     return head(f"{title} | Guides | Pokémon Decklists", blurb, f"/guides/{slug}.html") + header("guides") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/guides/">Guides</a> / {e(title)}</div>
-        <h2>{e(title)}</h2>
+        <h1 class="page-title">{e(title)}</h1>
         <p>{e(blurb)}</p>
         <p>Pokémon Decklists is a fan site. Lists are public tournament tables. Not affiliated with Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast (the original English TCG publisher).</p>
         <div class="section-title"><h3>Lists to open</h3></div>
@@ -1358,10 +1622,10 @@ def page_guide(slug, title, blurb):
 def page_type_guide(key, lab, hx):
     related = [x for x in LISTS if key in list_types(x)][:12]
     return head(f"{lab} type Pokémon TCG | Guides", f"{lab} energy lists on Pokémon Decklists.", f"/guides/types/{key}.html") + header("guides") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/guides/">Guides</a> / {lab}</div>
-        <h2>{lab} type</h2>
+        <h1 class="page-title">{lab} type</h1>
         <p>Lists that posted {lab} energy in August–September 2026. Color identity for Pokémon, the same way OPDB tags leader colors.</p>
         <span class="color-pill color-{key}"><span class="dot" style="background:{hx}"></span>{lab}</span>
         <ul class="list" style="margin-top:16px">{list_index_items(related)}</ul>
@@ -1376,10 +1640,10 @@ def page_events():
         "Official Play! Pokémon events, Worlds 2026, and where to find League Cups and Regionals.",
         "/events.html",
     ) + header("events") + """
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Events</div>
-        <h2>Events and schedule</h2>
+        <h1 class="page-title">Events and schedule</h1>
         <p>Official calendars first. Cup lists on this site are public tables from Limitless, not a substitute for Play! Pokémon registration.</p>
         <a class="events-banner" href="https://events.pokemon.com/EventLocator" target="_blank" rel="noopener">
           <div>
@@ -1421,10 +1685,10 @@ def page_rules():
         "Standard rotation, Expanded, Gym Leader Challenge, Pocket, and Unlimited in one place.",
         "/format.html",
     ) + header("rules") + """
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Format</div>
-        <h2>Format rules</h2>
+        <h1 class="page-title">Format rules</h1>
         <p>Lists on this site are tagged by format. Standard is the championship pile. Pocket, GLC, Expanded, and vintage Unlimited sit next to it instead of under a leader name.</p>
         <section style="margin-top:22px">
           <div class="section-title"><h3>Standard 2026</h3><div class="muted">H / I / J</div></div>
@@ -1456,10 +1720,10 @@ def page_privacy():
         "Privacy Policy for Pokémon Decklists: cookies, analytics, advertising, and affiliate links.",
         "/privacy.html",
     ) + header() + """
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero policy">
         <div class="crumb"><a href="/">Home</a> / Privacy Policy</div>
-        <h2>Privacy Policy</h2>
+        <h1 class="page-title">Privacy Policy</h1>
         <p class="muted">Last updated: September 7, 2026</p>
         <p>Pokémon Decklists ("we," "us," or "this site") respects your privacy. This Privacy Policy explains what information we collect when you visit pokemondecklists.com, how we use it, and the choices you have.</p>
         <section>
@@ -1528,10 +1792,10 @@ def page_search():
     )
     groups.append(f'<section class="search-group" data-search-group><div class="section-title"><h3>Collectibles</h3></div><ul class="list">{card_items}</ul></section>')
     return head("Search PKMN decklists | Pokémon Decklists", "Search Pokémon TCG decklists by format, player, archetype, or event.", "/search.html") + header("search") + f"""
-    <main class="single">
+    <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Search</div>
-        <h2>Search</h2>
+        <h1 class="page-title">Search</h1>
         <form class="site-search" method="get" action="/search.html" role="search">
           <label class="site-search-label" for="q">Search PKMN decklists</label>
           <div class="site-search-row">
@@ -1549,16 +1813,19 @@ def page_search():
 def extras():
     (ROOT / "ads.txt").write_text("google.com, pub-1074015774205047, DIRECT, f08c47fec0942fa0\n")
     (ROOT / "robots.txt").write_text(
-        "User-agent: *\nAllow: /\nSitemap: https://pokemondecklists.com/sitemap.xml\n"
+        "User-agent: *\nAllow: /\n\n"
+        "User-agent: Mediapartners-Google\nAllow: /\n\n"
+        "Sitemap: https://pokemondecklists.com/sitemap.xml\n"
     )
     (ROOT / "site.webmanifest").write_text(json.dumps({
         "name": "Pokémon Decklists",
-        "short_name": "PKMN",
-        "description": "Pokémon TCG decklists by format.",
+        "short_name": "PKMN Decklists",
+        "description": "Pokémon TCG decklists by format, card prices, and tournament results.",
         "start_url": "/",
-        "display": "browser",
-        "background_color": "#f7f5f3",
+        "display": "standalone",
+        "background_color": "#f4f1ec",
         "theme_color": "#c62828",
+        "lang": "en-US",
         "icons": [
             {"src": "/img/pkdl-logo-48.png", "sizes": "48x48", "type": "image/png"},
             {"src": "/img/pkdl-logo-192.png", "sizes": "192x192", "type": "image/png"},
@@ -1569,11 +1836,25 @@ def extras():
         """<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
   <ShortName>Pokémon Decklists</ShortName>
-  <Description>Search PKMN decklists</Description>
-  <Url type="text/html" template="https://pokemondecklists.com/search.html?q={searchTerms}"/>
+  <Description>Search Pokémon TCG decklists and cards</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image width="16" height="16" type="image/png">https://pokemondecklists.com/img/pkdl-logo-48.png</Image>
+  <Url type="text/html" method="get" template="https://pokemondecklists.com/search.html?q={searchTerms}"/>
 </OpenSearchDescription>
 """
     )
+    hubs = {
+        "/": ("daily", "1.0"),
+        "/formats/": ("weekly", "0.9"),
+        "/tier-list.html": ("weekly", "0.9"),
+        "/collectibles/": ("daily", "0.9"),
+        "/price-tracker.html": ("daily", "0.8"),
+        "/events.html": ("weekly", "0.8"),
+        "/guides/": ("monthly", "0.7"),
+        "/shop/": ("monthly", "0.6"),
+        "/search.html": ("monthly", "0.4"),
+        "/privacy.html": ("yearly", "0.2"),
+    }
     urls = [
         "/", "/formats/", "/format.html", "/events.html", "/tier-list.html",
         "/price-tracker.html", "/collectibles/", "/collectibles/cards/", "/collectibles/sets/",
@@ -1584,23 +1865,62 @@ def extras():
     urls += [f"/guides/{s}.html" for s, _, _ in GUIDES]
     urls += [f"/guides/types/{k}.html" for k, _, _ in TYPES]
     urls += [href_list(x) for x in LISTS]
+    set_urls = set()
     for row in price_records():
         urls.append(row["href"])
-        urls.append(f"/collectibles/sets/{row['set']}.html")
-    body = "\n".join(f"  <url><loc>{CANON}{u}</loc><lastmod>{NOW}</lastmod></url>" for u in urls)
+        set_urls.add(f"/collectibles/sets/{row['set']}.html")
+    urls.extend(sorted(set_urls))
+    seen = []
+    for u in urls:
+        if u not in seen:
+            seen.append(u)
+    bits = []
+    for u in seen:
+        freq, pri = hubs.get(u, ("weekly", "0.6"))
+        if u.startswith("/decklists/"):
+            freq, pri = "monthly", "0.55"
+        elif u.startswith("/collectibles/cards/") and u != "/collectibles/cards/":
+            freq, pri = "weekly", "0.5"
+        bits.append(
+            f"  <url><loc>{CANON}{u}</loc><lastmod>{NOW}</lastmod>"
+            f"<changefreq>{freq}</changefreq><priority>{pri}</priority></url>"
+        )
     (ROOT / "sitemap.xml").write_text(
-        f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{body}\n</urlset>\n'
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(bits)
+        + "\n</urlset>\n"
     )
-    css = (ROOT / "css" / "site.css").read_text()
-    if ".discord-nav" not in css:
-        (ROOT / "css" / "site.css").write_text(css + """
-.discord-nav{color:var(--muted);font-weight:600;cursor:default}
-header > nav[aria-label="Primary"] a:first-of-type{color:var(--accent);font-weight:800}
-""")
+    write(
+        "404.html",
+        head(
+            "Page not found | Pokémon Decklists",
+            "That page is missing. Browse Pokémon TCG decklists by format or search the catalog.",
+            "/404.html",
+            robots="noindex, follow",
+        )
+        + header()
+        + """
+    <main id="main" class="single">
+      <div class="card hero">
+        <p class="kicker">404</p>
+        <h1 class="page-title">This page is missing</h1>
+        <p>The list or card you wanted is not here. Try search, or jump back to a format hub.</p>
+        <p class="home-actions">
+          <a class="btn-primary" href="/">Home</a>
+          <a class="home-ghost" href="/formats/">Formats</a>
+          <a class="home-ghost" href="/search.html">Search</a>
+        </p>
+      </div>
+    </main>
+"""
+        + footer(),
+    )
     stale = ROOT / "formats" / "limited.html"
     if stale.exists():
         stale.unlink()
         print("removed", stale)
+    (ROOT / ".nojekyll").write_text("")
 
 
 def main():

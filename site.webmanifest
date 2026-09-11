@@ -1,11 +1,12 @@
 {
   "name": "Pok\u00e9mon Decklists",
-  "short_name": "PKMN",
-  "description": "Pok\u00e9mon TCG decklists by format.",
+  "short_name": "PKMN Decklists",
+  "description": "Pok\u00e9mon TCG decklists by format, card prices, and tournament results.",
   "start_url": "/",
-  "display": "browser",
-  "background_color": "#f7f5f3",
+  "display": "standalone",
+  "background_color": "#f4f1ec",
   "theme_color": "#c62828",
+  "lang": "en-US",
   "icons": [
     {
       "src": "/img/pkdl-logo-48.png",
