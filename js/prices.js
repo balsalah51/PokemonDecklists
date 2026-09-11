@@ -16,7 +16,7 @@
   }
 
   function money(n) {
-    if (n == null || isNaN(n)) return "—";
+    if (n == null || isNaN(n)) return "-";
     return "$" + Number(n).toFixed(2);
   }
 
@@ -41,8 +41,8 @@
           "<td><img src=\"" + (row.image || "") + "\" alt=\"\"></td>" +
         "<td><a href=\"" + (row.href || "#") + "\"><strong>" + row.name + "</strong></a><div class=\"muted\">" + row.set + " " + row.number + "</div></td>" +
           "<td>" + money(row.spot) + "</td>" +
-          "<td class=\"" + (row.change7 >= 0 ? "up" : "down") + "\">" + (row.change7 == null ? "—" : ((row.change7 >= 0 ? "+" : "") + row.change7.toFixed(1) + "%")) + "</td>" +
-          "<td class=\"" + (row.change30 >= 0 ? "up" : "down") + "\">" + (row.change30 == null ? "—" : ((row.change30 >= 0 ? "+" : "") + row.change30.toFixed(1) + "%")) + "</td>" +
+          "<td class=\"" + (row.change7 >= 0 ? "up" : "down") + "\">" + (row.change7 == null ? "-" : ((row.change7 >= 0 ? "+" : "") + row.change7.toFixed(1) + "%")) + "</td>" +
+          "<td class=\"" + (row.change30 >= 0 ? "up" : "down") + "\">" + (row.change30 == null ? "-" : ((row.change30 >= 0 ? "+" : "") + row.change30.toFixed(1) + "%")) + "</td>" +
           "<td>" + spark(row.series, 120, 36) + "</td>" +
           "<td><a class=\"buy-tcg\" href=\"" + row.buy + "\" target=\"_blank\" rel=\"noopener nofollow sponsored\">Buy</a></td>";
         tr.addEventListener("click", function () { show(row); });
@@ -60,8 +60,8 @@
         "<div><div class=\"muted\">" + row.set + " · " + row.number + "</div>" +
         "<h3 style=\"margin:4px 0 8px\"><a href=\"" + (row.href || "#") + "\">" + row.name + "</a></h3>" +
         "<div class=\"big-price\">" + money(row.spot) + "</div>" +
-        "<p class=\"muted\">7-day " + (row.change7 == null ? "—" : row.change7.toFixed(1) + "%") +
-        " · 30-day " + (row.change30 == null ? "—" : row.change30.toFixed(1) + "%") +
+        "<p class=\"muted\">7-day " + (row.change7 == null ? "-" : row.change7.toFixed(1) + "%") +
+        " · 30-day " + (row.change30 == null ? "-" : row.change30.toFixed(1) + "%") +
         ". Public TCGPlayer market snapshots via Limitless.</p>" +
         spark(row.series, w, h) +
         "<p style=\"margin-top:10px\"><a class=\"shop-buy\" href=\"" + row.buy + "\" target=\"_blank\" rel=\"noopener nofollow sponsored\">Buy on TCGplayer</a></p></div></div>";

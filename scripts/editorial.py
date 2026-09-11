@@ -34,13 +34,13 @@ ESSAYS = [
 
 TYPE_BLURB = {
     "grass": "Grass in this window is often the Teal Mask / Ogerpon / Meganium line in Standard, or a GLC singleton pile that wants to stall and spread. Energy attachments are slower than Fire; the lists that work usually have a draw engine that does not care.",
-    "fire": "Fire is the aggressive paper pile — Ethan’s Typhlosion, Mega Blaziken, Entei lines. Prize races are short. If a list posts four of a Stage 2, look at the draw and the rare candy count before you copy it.",
+    "fire": "Fire is the aggressive paper pile - Ethan’s Typhlosion, Mega Blaziken, Entei lines. Prize races are short. If a list posts four of a Stage 2, look at the draw and the rare candy count before you copy it.",
     "water": "Water is still the control and spread seat: Greninja, Starmie, Gyarados, Suicune in Pocket. Paper lists that look “just Water” are often a second type in the energy row.",
-    "lightning": "Lightning is Miraidon, Magnezone, and the rush piles. Prize maps are front-loaded. Check the energy count twice — these lists brick if the math is tourist.",
+    "lightning": "Lightning is Miraidon, Magnezone, and the rush piles. Prize maps are front-loaded. Check the energy count twice - these lists brick if the math is tourist.",
     "psychic": "Psychic is Alakazam, Munkidori, and a lot of GLC. Status and disruption over raw numbers. A Psychic GLC list with twenty-two copies of the type is doing the format correctly.",
     "fighting": "Fighting is Lucario, Mega Lucario, Excadrill, and the Bench-snipe seats. Three-prize Megas change the math. Do not copy a Worlds Fighting list into a locals cup without counting prizes.",
     "darkness": "Darkness is N’s Zoroark, Honchkrow, and the mill / disruption cousins. The 4-of supporters matter more than the attackers. Read the trainer row first.",
-    "metal": "Metal is still the awkward paper type — boxes, Magnezone hybrids, and the old Energy cards that spike on the tracker. A Metal list that posts in Unlimited is not a Standard list.",
+    "metal": "Metal is still the awkward paper type - boxes, Magnezone hybrids, and the old Energy cards that spike on the tracker. A Metal list that posts in Unlimited is not a Standard list.",
     "fairy": "Fairy is thin in this window. If a list shows Fairy energy it is usually a splash or a Pocket experiment. Do not force a paper identity that the table is not playing.",
     "dragon": "Dragon is Dragapult, and then Dragapult with a friend (Dusknoir, Blaziken). One hundred Standard lists in this window are just “Dragapult.” Open three of them. The 1-ofs are the real list.",
     "colorless": "Colorless is Basic Box, Dudunsparce, and the GLC Colorless gym. Energy is easy; the constraint is the attacker suite. Colorless GLC is one of the few community piles that still looks like a gym leader’s box.",
@@ -54,16 +54,16 @@ GUIDE_BODY = {
 """,
     "standard": """
 <p>Standard in 2026 is regulation marks <strong>H, I, and J</strong>. G-mark cards left the format on 26 March 2026 for Pokémon TCG Live and 10 April 2026 for paper Play! Pokémon events. Mega Evolution Pokémon ex are in the pool and follow ordinary evolution rules.</p>
-<p>In this window the Standard table is not mysterious. Dragapult is the plurality — about a hundred lists under that name alone, plus Dusknoir and Blaziken variants. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking fill the next seats. The Worlds 2026 Masters winner was Andrew Hedrick on Dragapult.</p>
+<p>In this window the Standard table is not mysterious. Dragapult is the plurality - about a hundred lists under that name alone, plus Dusknoir and Blaziken variants. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking fill the next seats. The Worlds 2026 Masters winner was Andrew Hedrick on Dragapult.</p>
 <p>When you copy a Standard list off this site, check the date. A 30 August Worlds list and a 8 September online cup are the same format, not the same metagame. Open the <a href="/tier-list.html">tier list</a> for the weighted view, then open three actual lists in the same archetype and diff the 1-ofs.</p>
 """,
     "expanded": """
-<p>Expanded is Black &amp; White forward, with its own ban list. It is still an official Play! Pokémon format at some events, but it is not the Worlds constructed seat. Lists on this site are the ones that actually posted in August–September 2026 — a small table compared with Standard.</p>
+<p>Expanded is Black &amp; White forward, with its own ban list. It is still an official Play! Pokémon format at some events, but it is not the Worlds constructed seat. Lists on this site are the ones that actually posted in August–September 2026 - a small table compared with Standard.</p>
 <p>Do not take an Expanded list into a Standard cup. The card pool is a decade wider. Ban lists change. Read the official Expanded legality page before you sleeve it for paper.</p>
 """,
     "gym-leader-challenge": """
 <p>Gym Leader Challenge is the community format that still feels like a gym: <strong>one type</strong>, <strong>one of each card name</strong>, no rule-box Pokémon (no ex / V / GX / Radiant / ACE SPEC as the format defines them). Sixty cards. The ban list lives at <a href="https://gymleaderchallenge.com/" target="_blank" rel="noopener">gymleaderchallenge.com</a>, not on this site.</p>
-<p>In this window Psychic and Colorless post the most. A GLC list that looks “off-meta” is often just a gym identity — that is the point. Copy the type, not a Standard Dragapult core.</p>
+<p>In this window Psychic and Colorless post the most. A GLC list that looks “off-meta” is often just a gym identity - that is the point. Copy the type, not a Standard Dragapult core.</p>
 <p>If you are building from scratch, start with the type page, then the GLC hub, then a singleton constraint. Four of a card name is a Standard habit. It is illegal here.</p>
 """,
     "pokemon-tcg-pocket": """
@@ -91,7 +91,7 @@ GUIDE_BODY = {
 """,
     "starter-decks": """
 <p>A paper Standard list is 60 cards. You may play four copies of a card name, except Basic Energy, which is unlimited. Pocket is 20. GLC is singleton.</p>
-<p>What to buy first is not a secret: a playable Standard pile from a recent cup, 100 standard-size (63×88 mm) sleeves, and a box. The <a href="/shop/">shop</a> is Amazon affiliate table gear — sleeves, dice, mats, boxes — not a substitute for the singles in the list.</p>
+<p>What to buy first is not a secret: a playable Standard pile from a recent cup, 100 standard-size (63×88 mm) sleeves, and a box. The <a href="/shop/">shop</a> is Amazon affiliate table gear - sleeves, dice, mats, boxes - not a substitute for the singles in the list.</p>
 <p>Do not buy four of every Pokémon on a Worlds list if you are going to locals tomorrow. Buy the 4-ofs that show up in three lists of the same archetype. The 1-ofs are the room’s opinion, not a law.</p>
 """,
     "locals": """
@@ -103,7 +103,7 @@ GUIDE_BODY = {
 <p>We are not Limitless. We are not Pokémon. We rehost public lists, with format tags and a price desk, so you can read them without hopping ten URLs. If a list is wrong, the source URL on the list page is the authority.</p>
 """,
     "constructed": """
-<p>Constructed, in Play! Pokémon language, means you bring a 60-card deck. Four-of per name. Unlimited Basic Energy. Best-of-three at most premier events, with some cups as single games — check the organizer.</p>
+<p>Constructed, in Play! Pokémon language, means you bring a 60-card deck. Four-of per name. Unlimited Basic Energy. Best-of-three at most premier events, with some cups as single games - check the organizer.</p>
 <p>Pocket is constructed in the loose sense (you built the list) and not in the paper sense (20 cards, different energy). This site keeps them in different hubs on purpose.</p>
 """,
     "collectibles": """
@@ -128,12 +128,12 @@ GUIDE_BODY = {
     "buying-singles": """
 <p>Buy the print that matches the list: name, set, number, regulation mark. A reprint with a rotated letter is a different card for Standard.</p>
 <p>TCGPlayer buttons on this site are affiliate links (Impact partner 7670706 / 1780961). The shop is Amazon Associates for sleeves and table gear. Neither is a price guarantee. Check condition (NM vs LP) before you click through a $100 vintage print.</p>
-<p>Use <a href="/market/compare.html">compare</a> if two prints of a similar name are on the tracker. Use the <a href="/market/staples.html">staples</a> table to see which Pokémon lines were actually copied in this window — that is demand from lists, not from Twitter.</p>
+<p>Use <a href="/market/compare.html">compare</a> if two prints of a similar name are on the tracker. Use the <a href="/market/staples.html">staples</a> table to see which Pokémon lines were actually copied in this window - that is demand from lists, not from Twitter.</p>
 """,
     "event-prep": """
 <p>Paper: 60-card list, sleeves, dice, a playmat if the store wants one, and a way to track prizes. The <a href="/shop/">shop</a> is the same Amazon kit as the sister One Piece site. 63×88 mm sleeves fit Pokémon cards.</p>
 <p>Registration is on the Play! Pokémon locator or the store’s page. This site will not check you in. Read the format on the event posting. A GLC night is not Standard.</p>
-<p>Bring the list printed or on your phone. Judges want a list, not a vibe. Copy from a page on this site the morning of — lists do not update themselves after you screenshot them in July.</p>
+<p>Bring the list printed or on your phone. Judges want a list, not a vibe. Copy from a page on this site the morning of - lists do not update themselves after you screenshot them in July.</p>
 """,
     "pocket-vs-paper": """
 <p>Pocket is 20 cards. Paper Standard is 60. Energy, prizes, and the set pool are different. A Mega Lucario ex pile that is 10% of Pocket cups in this window is a Pocket pile.</p>

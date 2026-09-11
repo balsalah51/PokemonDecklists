@@ -218,7 +218,7 @@ def scrape_worlds(
         suffix = {1: "st", 2: "nd", 3: "rd"}.get(placing, "th")
         if 10 <= placing % 100 <= 20:
             suffix = "th"
-        title = f"{placing}{suffix} {row['player']} — {row['archetype']}"
+        title = f"{placing}{suffix} {row['player']} - {row['archetype']}"
         slug = slugify(f"{placing}-{row['player']}-{row['archetype']}-{slug_tag}")
         lists.append(
             {
@@ -305,7 +305,7 @@ def scrape_play(game: str, fmt_code: str | None, site_format: str, max_events: i
             suffix = {1: "st", 2: "nd", 3: "rd"}.get(placing, "th")
             if 10 <= placing % 100 <= 20:
                 suffix = "th"
-            title = f"{placing}{suffix} {player}" + (f" — {arch}" if arch else "")
+            title = f"{placing}{suffix} {player}" + (f" - {arch}" if arch else "")
             slug = slugify(f"{placing}-{player}-{arch}-{tid[:6]}")
             lists.append(
                 {
