@@ -21,7 +21,7 @@ CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
 NOW = "2026-09-11"
-CSS_V = "pkdl-4"
+CSS_V = "pkdl-5"
 
 TYPES = [
     ("grass", "Grass", "#4c9a2a"),
@@ -237,6 +237,19 @@ def crumbs_for(path: str, title: str) -> list[tuple[str, str]]:
         out.append((page, path))
         return out
 
+    if parts[0] == "market":
+        out.append(("Market", "/market/"))
+        if len(parts) > 1:
+            labels = {
+                "watchlist.html": "Watchlist",
+                "binder.html": "Binder",
+                "compare.html": "Compare",
+                "alerts.html": "Alerts",
+                "staples.html": "Staples",
+            }
+            out.append((labels.get(parts[1], page), path))
+        return out
+
     singles = {
         "tier-list.html": ("Tier list", "/tier-list.html"),
         "price-tracker.html": ("Price tracker", "/price-tracker.html"),
@@ -245,6 +258,8 @@ def crumbs_for(path: str, title: str) -> list[tuple[str, str]]:
         "search.html": ("Search", "/search.html"),
         "format.html": ("Format rules", "/format.html"),
         "404.html": ("Page not found", "/404.html"),
+        "partners.html": ("Partners", "/partners.html"),
+        "gallery.html": ("Artwork gallery", "/gallery.html"),
     }
     if parts[0] in singles:
         out.append(singles[parts[0]])
@@ -357,10 +372,11 @@ def nav(current: str = "") -> str:
         {a("/formats/", "Formats", "formats")}
         {a("/tier-list.html", "Tier list", "tier")}
         {a("/collectibles/", "Collectibles", "collect")}
-        {a("/price-tracker.html", "Prices", "prices")}
+        {a("/market/", "Market", "market")}
         {a("/events.html", "Events", "events")}
         {a("/guides/", "Guides", "guides")}
         {a("/shop/", "Shop", "shop")}
+        {a("/partners.html", "Partners", "partners")}
       </nav>"""
 
 
@@ -401,15 +417,20 @@ def footer(current: str = "") -> str:
           <a href="/events.html">Events</a>
           <a href="/guides/">Guides</a>
         </nav>
+        <nav aria-label="Market">
+          <p class="footer-head">Market</p>
+          <a href="/market/">Price community</a>
+          <a href="/market/watchlist.html">Watchlist</a>
+          <a href="/market/binder.html">Binder P&amp;L</a>
+          <a href="/market/compare.html">Compare prints</a>
+          <a href="/price-tracker.html">Full tracker</a>
+        </nav>
         <nav aria-label="Collect">
           <p class="footer-head">Collect</p>
           <a href="/collectibles/">Collectibles</a>
-          <a href="/price-tracker.html">Price tracker</a>
-          <a href="/collectibles/cards/">Card catalog</a>
+          <a href="/gallery.html">Artwork gallery</a>
           <a href="/shop/">Shop</a>
-        </nav>
-        <nav aria-label="Site">
-          <p class="footer-head">Site</p>
+          <a href="/partners.html">Partner programs</a>
           <a href="/search.html">Search</a>
           <a href="/privacy.html">Privacy</a>
           <span class="discord-nav" title="Discord coming soon">Discord — invite soon</span>
@@ -421,6 +442,7 @@ def footer(current: str = "") -> str:
   <script src="/js/tcgplayer-config.js" defer></script>
   <script src="/js/tcgplayer.js" defer></script>
   <script src="/js/site.js" defer></script>
+  <script src="/js/market.js" defer></script>
 </body>
 </html>"""
 
@@ -606,6 +628,11 @@ def page_index():
         for f in FORMATS
     )
     n_cards = len(price_records())
+    n_art = len(ORIG_ART)
+    fan = card_fan_html()
+    rail = art_rail()
+    tick = movers_ticker()
+    wall = card_wall_html()
     return head(
         "Pokémon TCG Decklists | Standard, Pocket & GLC",
         "Tournament Pokémon TCG decklists by format — Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. August–September 2026 lists, card prices, and shop.",
@@ -616,10 +643,11 @@ def page_index():
     <main id="main" class="single home">
       <section class="home-splash">
         <img class="home-splash-bg" src="/img/pkdl-hero.jpg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
+{fan}
         <div class="home-splash-copy">
           <p class="splash-kicker">Pokémon Trading Card Game</p>
           <h1>Pokémon Decklists</h1>
-          <p class="splash-lead">Tournament lists by format. Standard, Pocket, and Gym Leader Challenge first.</p>
+          <p class="splash-lead">Tournament lists, live singles, and a price desk — Standard, Pocket, and Gym Leader Challenge first.</p>
           <div class="formats">
             <span>Standard</span>
             <span>Pocket</span>
@@ -627,7 +655,8 @@ def page_index():
           </div>
           <div class="splash-cta">
             <a class="btn-primary" href="#recent">Browse lists</a>
-            <a class="btn-ghost-light" href="/collectibles/">Card prices</a>
+            <a class="btn-ghost-light" href="/market/">Price desk</a>
+            <a class="btn-ghost-light" href="/gallery.html">Artwork</a>
           </div>
         </div>
       </section>
@@ -636,8 +665,75 @@ def page_index():
         <li><strong>{len(LISTS):,}</strong><span>tournament lists</span></li>
         <li><strong>5</strong><span>formats</span></li>
         <li><strong>{n_cards}</strong><span>priced singles</span></li>
-        <li><strong>Aug–Sep 2026</strong><span>current window</span></li>
+        <li><strong>{n_art}</strong><span>original paintings</span></li>
       </ul>
+
+{tick}
+
+      <section class="home-gallery-band" aria-label="Original artwork">
+        <div class="section-title">
+          <h3>Original gallery</h3>
+          <a href="/gallery.html">All paintings →</a>
+        </div>
+        <p class="muted">Fan paintings in a Pokémon-card style — original creatures, not licensed prints. Card photos below are real singles from the tracker.</p>
+{rail}
+        <div class="home-wide-art">
+          <a href="/gallery.html"><img src="/img/art/art-sleeved-spread.jpg" alt="Sleeved cards spread across a hobby desk" width="1280" height="720" loading="lazy"></a>
+          <a href="/market/"><img src="/img/art/art-market-desk.jpg" alt="A trading-card market desk" width="1280" height="720" loading="lazy"></a>
+        </div>
+      </section>
+
+      <div class="home-thirds">
+        <section class="home-third home-third-play" id="competitive">
+          <div class="home-third-head">
+            <p class="kicker">Compete</p>
+            <h2>Decklists</h2>
+            <p>{len(LISTS):,} August–September 2026 lists by format.</p>
+          </div>
+          <div class="home-third-body">
+            <a class="half-link" href="#formats"><strong>Formats</strong><span>Types, color combos, recent lists</span></a>
+            <a class="half-link" href="#recent"><strong>Recent lists</strong><span>Worlds and Limitless Play cups</span></a>
+            <a class="half-link" href="/tier-list.html"><strong>Tier list</strong><span>Standard after Worlds 2026</span></a>
+            <a class="half-link" href="/events.html"><strong>Events</strong><span>Official locator and championship dates</span></a>
+          </div>
+        </section>
+        <section class="home-third home-third-market" id="market-home">
+          <div class="home-third-head">
+            <p class="kicker">Market</p>
+            <h2>Price community</h2>
+            <p>Watchlist, binder P&amp;L, alerts, and print compare — stored in this browser.</p>
+          </div>
+          <div class="home-third-body">
+            <a class="half-link" href="/market/"><strong>Market hub</strong><span>Desk, staples, and tools</span></a>
+            <a class="half-link" href="/market/watchlist.html"><strong>Watchlist</strong><span>Pin prints and check 7-day moves</span></a>
+            <a class="half-link" href="/market/binder.html"><strong>Binder</strong><span>Qty, paid price, paper P&amp;L</span></a>
+            <a class="half-link" href="/price-tracker.html"><strong>Full tracker</strong><span>Charts for {n_cards} singles</span></a>
+            {teasers}
+          </div>
+        </section>
+        <section class="home-third home-third-shop" id="collectibles-home">
+          <div class="home-third-head">
+            <p class="kicker">Shop</p>
+            <h2>Buy &amp; partners</h2>
+            <p>Live TCGplayer and Amazon links. More programs to apply next.</p>
+          </div>
+          <div class="home-third-body">
+            <a class="half-link" href="/collectibles/"><strong>Collectibles</strong><span>Catalog, sets, card pages</span></a>
+            <a class="half-link" href="/shop/"><strong>Amazon shop</strong><span>Sleeves, dice, mats, boxes</span></a>
+            <a class="half-link" href="/partners.html"><strong>Partner programs</strong><span>Live IDs plus official sign-up pages</span></a>
+            <a class="half-link" href="/gallery.html"><strong>Artwork</strong><span>{n_art} original paintings</span></a>
+          </div>
+        </section>
+      </div>
+
+      <section class="card home-panel" id="prints">
+        <div class="section-title">
+          <h3>Highest market prints</h3>
+          <a href="/collectibles/cards/">Full catalog →</a>
+        </div>
+        <p class="muted">Real card photos from the August–September 2026 tracker. Open any print for history, Watch, Compare, and a TCGplayer affiliate buy.</p>
+{wall}
+      </section>
 
       <a class="events-banner" id="events" href="/events.html">
         <div>
@@ -647,36 +743,6 @@ def page_index():
         </div>
         <div class="go">Official events →</div>
       </a>
-
-      <div class="home-halves">
-        <section class="home-half home-half-play" id="competitive">
-          <div class="home-half-head">
-            <p class="kicker">Competitive</p>
-            <h2>Decklists</h2>
-            <p>{len(LISTS):,} August–September 2026 lists, organized by format.</p>
-          </div>
-          <div class="home-half-body">
-            <a class="half-link" href="#formats"><strong>Formats</strong><span>Types, color combos, recent lists</span></a>
-            <a class="half-link" href="#recent"><strong>Recent lists</strong><span>Newest Worlds and Limitless Play cups</span></a>
-            <a class="half-link" href="/tier-list.html"><strong>Tier list</strong><span>Standard after Worlds 2026</span></a>
-            <a class="half-link" href="/events.html"><strong>Events</strong><span>Official locator and championship dates</span></a>
-          </div>
-        </section>
-        <section class="home-half home-half-collect" id="collectibles-home">
-          <div class="home-half-head">
-            <p class="kicker">Collectibles</p>
-            <h2>Prices &amp; card info</h2>
-            <p>Market history, set pages, and TCGPlayer affiliate buys for singles.</p>
-          </div>
-          <div class="home-half-body">
-            <a class="half-link" href="/collectibles/"><strong>Collectibles hub</strong><span>Catalog, movers, and card pages</span></a>
-            <a class="half-link" href="/price-tracker.html"><strong>Price tracker</strong><span>Charts, 7-day / 30-day trends</span></a>
-            <a class="half-link" href="/collectibles/sets/"><strong>Sets</strong><span>Singles grouped by set code</span></a>
-            <a class="half-link" href="/shop/"><strong>Shop</strong><span>Sleeves and table gear on Amazon</span></a>
-            {teasers}
-          </div>
-        </section>
-      </div>
 
       <form class="site-search home-search" method="get" action="/search.html" role="search">
         <label class="site-search-label" for="home-q">Search PKMN decklists</label>
@@ -713,6 +779,20 @@ def page_index():
         <ul class="recent-list" aria-label="Recent decklists">
 {chr(10).join(recent_item(x) for x in recent)}
         </ul>
+      </section>
+
+      <section class="home-partners card home-panel">
+        <div class="section-title">
+          <h3>Partners</h3>
+          <a href="/partners.html">Programs &amp; apply links →</a>
+        </div>
+        <p class="muted">Already live: Google AdSense <code>ca-pub-1074015774205047</code>, TCGplayer Impact 7670706 / 1780961, and Amazon Associates on the shop. Discord stays a placeholder with no invite yet.</p>
+        <div class="partner-strip">
+          <span class="partner-pill live">AdSense live</span>
+          <span class="partner-pill live">TCGplayer live</span>
+          <span class="partner-pill live">Amazon live</span>
+          <span class="partner-pill apply">Impact · eBay · Whatnot · TikTok Shop — apply next</span>
+        </div>
       </section>
     </main>
 """ + footer()
@@ -1111,7 +1191,13 @@ def spark_svg(values, w=640, h=160) -> str:
     )
 
 
+_PRICE_ROWS: list[dict] | None = None
+
+
 def price_records() -> list[dict]:
+    global _PRICE_ROWS
+    if _PRICE_ROWS is not None:
+        return _PRICE_ROWS
     rows = []
     for key, card in PRICES.items():
         series = hist_series(card.get("history") or [])
@@ -1143,7 +1229,153 @@ def price_records() -> list[dict]:
             "url": card.get("url") or "",
         })
     rows.sort(key=lambda r: -(r["spot"] or 0))
+    _PRICE_ROWS = rows
     return rows
+
+
+ORIG_ART = [
+    ("/img/art/art-fire-dragon.jpg", "Original fire-dragon painting", "wide"),
+    ("/img/art/art-water-serpent.jpg", "Original water-serpent painting", "portrait"),
+    ("/img/art/art-forest-guardian.jpg", "Original forest-guardian painting", "portrait"),
+    ("/img/art/art-storm-beast.jpg", "Original storm-beast painting", "portrait"),
+    ("/img/art/art-crystal-fox.jpg", "Original crystal-fox painting", "portrait"),
+    ("/img/art/art-steel-beetle.jpg", "Original steel-beetle painting", "portrait"),
+    ("/img/art/art-stone-ram.jpg", "Original stone-ram painting", "portrait"),
+    ("/img/art/art-mist-panther.jpg", "Original mist-panther painting", "portrait"),
+    ("/img/art/art-glow-moth.jpg", "Original glow-moth painting", "portrait"),
+    ("/img/art/art-spark-sparrow.jpg", "Original lightning-sparrow painting", "portrait"),
+    ("/img/art/art-night-wolf.jpg", "Original night-wolf painting", "portrait"),
+    ("/img/art/art-blossom-sprite.jpg", "Original blossom-sprite painting", "portrait"),
+    ("/img/art/art-summit-bear.jpg", "Original summit-bear painting", "portrait"),
+    ("/img/art/art-star-owl.jpg", "Original star-owl painting", "portrait"),
+    ("/img/art/art-ice-crane.jpg", "Original ice-crane painting", "portrait"),
+    ("/img/art/art-venom-bloom.jpg", "Original venom-bloom painting", "portrait"),
+    ("/img/art/art-sky-wyvern.jpg", "Original sky-wyvern painting", "portrait"),
+    ("/img/art/art-market-desk.jpg", "Original painting of a trading-card market desk", "wide"),
+    ("/img/art/art-binder.jpg", "Original painting of a collector’s binder", "wide"),
+    ("/img/art/art-gallery.jpg", "Original painting of a card-art gallery", "wide"),
+    ("/img/art/art-sleeved-spread.jpg", "Original painting of sleeved cards on a desk", "wide"),
+    ("/img/art/art-shop-wall.jpg", "Original painting of a card-shop gallery wall", "wide"),
+]
+
+
+def art_rail(n: int = 12) -> str:
+    portraits = [a for a in ORIG_ART if a[2] == "portrait"][:n]
+    tiles = []
+    for src, alt, _ in portraits:
+        tiles.append(
+            f'<a href="/gallery.html"><img src="{e(src)}" alt="{e(alt)}" width="245" height="342" loading="lazy" decoding="async"></a>'
+        )
+    return f'<div class="art-rail" aria-label="Original Pokémon-style artwork">{"".join(tiles)}</div>'
+
+
+def card_fan_html(n: int = 7) -> str:
+    recs = price_records()[:n]
+    tiles = []
+    for r in recs:
+        tiles.append(
+            f'<a class="fan-card" href="{e(r["href"])}">'
+            f'<img src="{e(r["image"])}" alt="{e(r["name"])} {e(r["set"])} {e(r["number"])}" width="92" height="128"></a>'
+        )
+    return f'<div class="hero-fan" aria-hidden="true">{"".join(tiles)}</div>'
+
+
+def movers_ticker() -> str:
+    recs = [r for r in sorted(price_records(), key=lambda r: abs(r["change7"] or 0), reverse=True) if r["change7"] is not None][:16]
+    if not recs:
+        return ""
+    chips = []
+    for r in recs:
+        sign = "+" if (r["change7"] or 0) >= 0 else ""
+        chips.append(
+            f'<a href="{e(r["href"])}"><img src="{e(r["image"])}" alt="">'
+            f'<strong>{e(r["name"])}</strong>'
+            f'<span>${(r["spot"] or 0):.2f} {sign}{r["change7"]:.1f}%</span></a>'
+        )
+    inner = "".join(chips)
+    return (
+        '<div class="ticker" aria-label="Seven-day price movers">'
+        f'<div class="ticker-track">{inner}</div></div>'
+    )
+
+
+def card_wall_html(n: int = 24) -> str:
+    tiles = []
+    for r in price_records()[:n]:
+        tiles.append(
+            f'<a class="wall-card" href="{e(r["href"])}">'
+            f'<img src="{e(r["image"])}" alt="{e(r["name"])} — {e(r["set"])} {e(r["number"])}" width="245" height="342" loading="lazy">'
+            f'<span class="cap">{e(r["name"])}<br>${(r["spot"] or 0):.2f}</span></a>'
+        )
+    return f'<div class="card-wall">{"".join(tiles)}</div>'
+
+
+def market_payload(row: dict) -> str:
+    return (
+        f'data-href="{e(row["href"])}" data-name="{e(row["name"])}" '
+        f'data-image="{e(row.get("image") or "")}" data-set="{e(row.get("set") or "")}" '
+        f'data-number="{e(row.get("number") or "")}" data-spot="{row.get("spot") or 0}" '
+        f'data-buy="{e(row.get("buy") or "")}"'
+    )
+
+
+def market_actions(row: dict) -> str:
+    p = market_payload(row)
+    cmp_href = f'/market/compare.html?a={quote(row["href"], safe="")}'
+    return (
+        f'<div class="market-actions" {p}>'
+        f'<button type="button" class="home-ghost" data-watch>Watch</button>'
+        f'<button type="button" class="home-ghost" data-binder-add>Add to binder</button>'
+        f'<a class="home-ghost" href="{e(cmp_href)}">Compare</a>'
+        f'<a class="home-ghost" href="/market/alerts.html">Alert</a>'
+        f"</div>"
+    )
+
+
+def market_data_script() -> str:
+    slim = [
+        {k: r[k] for k in ("key", "name", "set", "number", "image", "spot", "change7", "buy", "href")}
+        for r in price_records()
+    ]
+    return f'<script type="application/json" id="market-data">{json.dumps(slim, ensure_ascii=False)}</script>'
+
+
+def market_subnav(current: str = "") -> str:
+    links = [
+        ("/market/", "Hub", "hub"),
+        ("/market/watchlist.html", "Watchlist", "watch"),
+        ("/market/binder.html", "Binder", "binder"),
+        ("/market/compare.html", "Compare", "compare"),
+        ("/market/alerts.html", "Alerts", "alerts"),
+        ("/market/staples.html", "Staples", "staples"),
+        ("/price-tracker.html", "Full tracker", "tracker"),
+        ("/collectibles/movers.html", "Movers", "movers"),
+    ]
+    bits = []
+    for href, label, key in links:
+        cur = ' aria-current="page"' if current == key else ""
+        bits.append(f'<a class="home-ghost" href="{href}"{cur}>{label}</a>')
+    return f'<nav class="market-subnav" aria-label="Market tools">{"".join(bits)}</nav>'
+
+
+def staple_rows() -> list[tuple[str, int, dict | None, str]]:
+    counts: Counter = Counter()
+    images: dict[str, str] = {}
+    for lst in LISTS:
+        for c in (lst.get("decklist") or {}).get("pokemon") or []:
+            name = c.get("name") or ""
+            if not name:
+                continue
+            counts[name] += int(c.get("count") or 0)
+            if name not in images:
+                images[name] = c.get("image") or ""
+    priced = {}
+    for r in price_records():
+        priced.setdefault(r["name"], r)
+    out = []
+    for name, qty in counts.most_common(48):
+        out.append((name, qty, priced.get(name), images.get(name, "")))
+    return out
 
 
 def decks_with_card(setc, num, limit=8) -> list[dict]:
@@ -1220,10 +1452,12 @@ def page_collectibles_hub():
         <h1 class="page-title">Collectibles</h1>
         <p>The other half of the site. Singles that posted in August–September 2026 lists, with public TCGPlayer market history via Limitless, card facts, and affiliate buy links.</p>
         <div class="collect-jump">
+          <a class="home-ghost" href="/market/">Market hub</a>
           <a class="home-ghost" href="/price-tracker.html">Price tracker</a>
           <a class="home-ghost" href="/collectibles/cards/">Card catalog</a>
           <a class="home-ghost" href="/collectibles/sets/">Sets</a>
           <a class="home-ghost" href="/collectibles/movers.html">Movers</a>
+          <a class="home-ghost" href="/gallery.html">Artwork</a>
         </div>
         <section style="margin-top:22px">
           <div class="section-title"><h3>Highest market</h3><div class="muted">{len(rows)} tracked singles</div></div>
@@ -1431,6 +1665,7 @@ def page_card(row: dict) -> str:
             {artist}
             <div class="big-price">${(row["spot"] or 0):.2f}</div>
             <p class="muted">7-day {ch7} · 30-day {ch30}</p>
+            {market_actions(row)}
             <p style="margin-top:10px"><a class="shop-buy" href="{row["buy"]}" target="_blank" rel="noopener nofollow sponsored">Buy on TCGplayer</a></p>
           </div>
         </div>
@@ -1464,12 +1699,13 @@ def page_prices():
         "Pokémon TCG card price history and trends from public TCGPlayer market snapshots. Affiliate buy links on every card.",
         "/price-tracker.html",
         extra='<script src="/js/prices.js" defer></script>',
-    ) + header("prices") + f"""
+    ) + header("market") + f"""
     <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Price tracker</div>
         <h1 class="page-title">Card price tracker</h1>
         <p>Market history for singles that posted in August–September 2026 lists. Charts are public TCGPlayer snapshots via Limitless. Open a name for the collectible card page. Every buy button is an affiliate link.</p>
+        {market_subnav("tracker")}
         <p><a class="home-ghost" href="/collectibles/">Collectibles hub</a> · <a class="home-ghost" href="/collectibles/cards/">Catalog</a> · <a class="home-ghost" href="/collectibles/movers.html">Movers</a></p>
         <div class="section-title"><h3>Biggest 7-day moves</h3><div class="muted">From this tracker set</div></div>
         <ul class="list">{mover_html}</ul>
@@ -1746,6 +1982,11 @@ def page_privacy():
           <p>Some links on this site are affiliate links. If you buy through them, we may earn a commission. That does not change the price you pay.</p>
           <p><strong>Amazon.</strong> We are an Amazon Associate. The <a href="/shop/">Shop</a> links to Amazon for sleeves, dice, playmats, deck boxes, and table extras, and we earn from qualifying purchases.</p>
           <p><strong>TCGplayer.</strong> We are a TCGplayer affiliate (Impact partner 7670706 / 1780961). Buy links on decklists, the price tracker, and collectibles card pages go to TCGplayer, and we may earn a commission if you purchase after clicking them.</p>
+          <p>Other retailer programs listed on <a href="/partners.html">Partners</a> are application links only until an account is approved. We do not invent tracking IDs for programs we have not joined.</p>
+        </section>
+        <section>
+          <h3>Price tools stored on your device</h3>
+          <p>Watchlist, binder quantities, paid prices, and alert thresholds are saved in your browser with localStorage under <code>pkdl-market-v1</code>. They are not sent to our servers. Clearing site data removes them.</p>
         </section>
         <section>
           <h3>Analytics</h3>
@@ -1810,6 +2051,281 @@ def page_search():
 """ + footer()
 
 
+def page_market_shell(
+    title: str,
+    desc: str,
+    path: str,
+    current: str,
+    heading: str,
+    intro: str,
+    body: str,
+    banner: str = "/img/art/art-market-desk.jpg",
+    image_alt: str = "Original painting of a trading-card market desk",
+) -> str:
+    return head(
+        title,
+        desc,
+        path,
+        banner,
+        extra=market_data_script(),
+        image_alt=image_alt,
+    ) + header("market") + f"""
+    <main id="main" class="single">
+      <img class="market-banner" src="{e(banner)}" alt="{e(image_alt)}" width="1600" height="900">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / <a href="/market/">Market</a>{" / " + e(heading) if path != "/market/" else ""}</div>
+        <p class="kicker">Price community</p>
+        <h1 class="page-title">{e(heading)}</h1>
+        <p>{intro}</p>
+        {market_subnav(current)}
+        {body}
+        <p class="amazon-disclosure-line">TCGplayer affiliate partner 7670706 / 1780961. As an Amazon Associate I earn from qualifying purchases on shop pages. Watchlist, binder, and alerts stay in this browser.</p>
+      </div>
+    </main>
+""" + footer()
+
+
+def page_market_hub():
+    tools = [
+        ("/market/watchlist.html", "Watchlist", "Pin prints. Spot and 7-day change refresh from this site’s catalog."),
+        ("/market/binder.html", "Binder P&amp;L", "Quantity and what you paid, versus live market."),
+        ("/market/compare.html", "Compare prints", "Two card photos, two spots, two 7-day moves."),
+        ("/market/alerts.html", "Price alerts", "Below / above checks when you open the alerts page."),
+        ("/market/staples.html", "Staples", "Most-copied Pokémon in the current list window, with price if we track it."),
+        ("/price-tracker.html", "Full tracker", "Charts, 7-day and 30-day trends, filter the whole set."),
+        ("/collectibles/movers.html", "Movers", "Biggest percentage swings in the last week."),
+        ("/collectibles/cards/", "Catalog", "Every priced single with a card page."),
+    ]
+    tool_html = "".join(
+        f'<a class="market-tool" href="{href}"><strong>{label}</strong><span class="muted">{blurb}</span></a>'
+        for href, label, blurb in tools
+    )
+    body = f"""
+        <p class="muted" id="market-desk-note">Watchlist, binder, and alerts stay in this browser. No account.</p>
+        <div class="market-tools">{tool_html}</div>
+        <section style="margin-top:22px">
+          <div class="section-title"><h3>Highest market right now</h3><a href="/collectibles/cards/">Catalog →</a></div>
+          {card_wall_html(16)}
+        </section>
+        <section style="margin-top:22px">
+          <div class="section-title"><h3>Artwork at the desk</h3><a href="/gallery.html">Gallery →</a></div>
+          <div class="art-inline">
+            <img src="/img/art/art-binder.jpg" alt="Collector binder painting">
+            <img src="/img/art/art-gallery.jpg" alt="Card-art gallery painting">
+            <img src="/img/art/art-shop-wall.jpg" alt="Card-shop wall painting">
+          </div>
+        </section>
+"""
+    return page_market_shell(
+        "Pokémon TCG price community | Pokémon Decklists",
+        "Watchlist, binder profit and loss, print compare, and price alerts for Pokémon TCG singles. Public TCGPlayer market snapshots plus affiliate buy links.",
+        "/market/",
+        "hub",
+        "Market desk",
+        "A price community on top of the tracker: watch prints, log a binder, compare two cards, and set below/above checks. Live TCGplayer and Amazon links stay on. Nothing here requires a login.",
+        body,
+    )
+
+
+def page_watchlist():
+    return page_market_shell(
+        "Card watchlist | Pokémon Decklists",
+        "Save Pokémon TCG prints in this browser and check live spot prices from the site catalog.",
+        "/market/watchlist.html",
+        "watch",
+        "Watchlist",
+        "Tap Watch on any collectible card page. The list lives in this browser only.",
+        '<div id="watch-list" class="collect-grid"></div>',
+    )
+
+
+def page_binder():
+    return page_market_shell(
+        "Binder profit and loss | Pokémon Decklists",
+        "Track Pokémon TCG binder quantity and paid price versus live market, in this browser.",
+        "/market/binder.html",
+        "binder",
+        "Binder P&L",
+        "Add a print from a card page. Edit qty and what you paid. Totals use the latest spot we published — not a live brokerage.",
+        '<p id="binder-sum" hidden></p><div id="binder-list"></div>',
+        "/img/art/art-binder.jpg",
+        "Original painting of a collector’s binder",
+    )
+
+
+def page_compare():
+    return page_market_shell(
+        "Compare Pokémon TCG prints | Pokémon Decklists",
+        "Compare two Pokémon TCG prints: photos, market spot, and 7-day change.",
+        "/market/compare.html",
+        "compare",
+        "Compare prints",
+        "Pick two singles from the tracker. Share the URL — the pair is in the query string.",
+        """<div class="compare-pick">
+          <label>Print A <select id="compare-a"></select></label>
+          <label>Print B <select id="compare-b"></select></label>
+        </div>
+        <div id="compare-out"></div>""",
+    )
+
+
+def page_alerts():
+    return page_market_shell(
+        "Pokémon TCG price alerts | Pokémon Decklists",
+        "Set below and above price checks for watched Pokémon TCG prints. Checks run when you open this page.",
+        "/market/alerts.html",
+        "alerts",
+        "Price alerts",
+        "Watch a card first. Then set a floor or ceiling. This is a page-load check, not a push notification.",
+        '<div id="alert-hits" hidden></div><div id="alert-list"></div>',
+    )
+
+
+def page_staples():
+    rows = staple_rows()
+    bits = [
+        "<table class=\"price-table staples-table\"><thead><tr>"
+        "<th></th><th>Pokémon</th><th>Copies in window</th><th>Spot</th><th>7d</th><th></th>"
+        "</tr></thead><tbody>"
+    ]
+    for name, qty, match, img in rows:
+        thumb = (match or {}).get("image") or img
+        if match:
+            ch = match["change7"]
+            chs = "—" if ch is None else f"{ch:+.1f}%"
+            cls = "" if ch is None else ("up" if ch >= 0 else "down")
+            spot = f'${(match["spot"] or 0):.2f}'
+            open_ = f'<a class="home-ghost" href="{e(match["href"])}">Open</a>'
+            pic = f'<a href="{e(match["href"])}"><img src="{e(thumb)}" alt="{e(name)}" width="40" height="56"></a>'
+        else:
+            chs, cls, spot, open_ = "—", "", "—", ""
+            pic = f'<img src="{e(thumb)}" alt="{e(name)}" width="40" height="56">' if thumb else ""
+        bits.append(
+            f'<tr><td>{pic}</td><td style="font-weight:700">{e(name)}</td>'
+            f"<td>{qty}</td><td>{spot}</td><td class=\"{cls}\">{chs}</td><td>{open_}</td></tr>"
+        )
+    bits.append("</tbody></table>")
+    return page_market_shell(
+        "Most-played Pokémon staples | Pokémon Decklists",
+        "Pokémon lines copied most in August–September 2026 lists, with market price when the print is in the tracker.",
+        "/market/staples.html",
+        "staples",
+        "Staples",
+        "Counted from Pokémon rows in the current list window. If we track a print with the same name, you get spot, trend, and the card page.",
+        "".join(bits),
+    )
+
+
+def page_gallery():
+    portraits = "".join(
+        f'<a href="{e(src)}"><img src="{e(src)}" alt="{e(alt)}" width="367" height="512" loading="lazy"><span>{e(alt)}</span></a>'
+        for src, alt, kind in ORIG_ART
+        if kind == "portrait"
+    )
+    wides = "".join(
+        f'<a href="{e(src)}"><img src="{e(src)}" alt="{e(alt)}" width="1280" height="720" loading="lazy"><span>{e(alt)}</span></a>'
+        for src, alt, kind in ORIG_ART
+        if kind == "wide"
+    )
+    return head(
+        "Original Pokémon-style artwork | Pokémon Decklists",
+        "Original fan paintings in a Pokémon trading-card style. Not official Pokémon art and not affiliated with Nintendo or The Pokémon Company.",
+        "/gallery.html",
+        "/img/art/art-gallery.jpg",
+        image_alt="Original painting of a card-art gallery",
+    ) + header() + f"""
+    <main id="main" class="single">
+      <img class="market-banner" src="/img/art/art-gallery.jpg" alt="Original painting of a card-art gallery" width="1600" height="900">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / Artwork gallery</div>
+        <h1 class="page-title">Artwork gallery</h1>
+        <p>Original paintings made for this site. Creature designs are invented. They are not official Pokémon, not set art, and not a substitute for licensed cards. Real card photos live on <a href="/collectibles/">collectibles</a>.</p>
+        <div class="section-title"><h3>Creatures</h3><div class="muted">{sum(1 for a in ORIG_ART if a[2]=="portrait")} portraits</div></div>
+        <div class="gallery-grid">{portraits}</div>
+        <div class="section-title" style="margin-top:22px"><h3>Desk and shop</h3></div>
+        <div class="gallery-grid gallery-wide">{wides}</div>
+      </div>
+    </main>
+""" + footer()
+
+
+def partner_card(tag: str, tag_class: str, name: str, blurb: str, href: str, cta: str) -> str:
+    return (
+        f'<article class="partner-card"><span class="tag {tag_class}">{e(tag)}</span>'
+        f"<h3>{name}</h3><p class=\"muted\">{blurb}</p>"
+        f'<p><a class="home-ghost" href="{e(href)}" target="_blank" rel="noopener">{e(cta)}</a></p></article>'
+    )
+
+
+def page_partners():
+    live = [
+        partner_card(
+            "Live",
+            "live",
+            "Google AdSense",
+            f"Auto ads on every page. Publisher {ADS}. Listed in ads.txt as DIRECT.",
+            "https://www.google.com/adsense/",
+            "AdSense publisher center",
+        ),
+        partner_card(
+            "Live",
+            "live",
+            "TCGplayer via Impact",
+            "Impact partner 7670706 / 1780961. Buy buttons on lists, the tracker, and card pages wrap this live link.",
+            PARTNER,
+            "Open the live TCGplayer partner link",
+        ),
+        partner_card(
+            "Live",
+            "live",
+            "Amazon Associates",
+            "Shop sleeves, dice, playmats, deck boxes, and table extras. Same amzn.to SKUs as the shop — no extra tracking IDs invented.",
+            "/shop/",
+            "Open the Amazon shop",
+        ),
+    ]
+    apply = [
+        ("Impact.com", "Network that already powers the live TCGplayer link. Apply as a publisher to add more advertisers (GameStop, Whatnot, others on Impact).", "https://impact.com/publishers/", "Apply on Impact"),
+        ("TCGplayer program notes", "Official write-up of the TCGplayer affiliate program and the Impact campaign form.", "https://docs.tcgplayer.com/docs/tcgplayer-affiliate-program", "Read TCGplayer docs"),
+        ("eBay Partner Network", "Auction and Buy It Now listings. Official publisher signup.", "https://partnernetwork.ebay.com/", "Apply to EPN"),
+        ("ShareASale", "Marketplace with hobby and collectibles merchants. Publisher application.", "https://www.shareasale.com/info/affiliates/", "Apply to ShareASale"),
+        ("CJ Affiliate", "Commission Junction publisher enrollment for retail programs.", "https://www.cj.com/publisher", "Apply to CJ"),
+        ("Rakuten Advertising", "Publisher signup for retail and collectible advertisers on Rakuten.", "https://rakutenadvertising.com/publishers/", "Apply to Rakuten"),
+        ("Awin", "Publisher network with US and EU retail programs.", "https://www.awin.com/us/publishers", "Apply to Awin"),
+        ("Whatnot Affiliates", "Live selling and TCG lots. Official Impact-powered application.", "https://www.whatnotaffiliates.com/", "Apply to Whatnot"),
+        ("TikTok Shop Affiliate", "Creator/affiliate center for TikTok Shop US.", "https://affiliate-us.tiktok.com/", "Open TikTok Shop Affiliate"),
+        ("YouTube Shopping", "YouTube’s shopping affiliate program for product shelves and tagged videos.", "https://support.google.com/youtube/answer/13360964", "YouTube Shopping help"),
+        ("Cardmarket", "EU singles marketplace. Start from their affiliate help article, then apply if the region fits.", "https://help.cardmarket.com/en/AffiliateProgram", "Cardmarket affiliate help"),
+        ("Partnerize", "Publisher network used by several entertainment and retail brands.", "https://partnerize.com/en-us/publishers", "Apply to Partnerize"),
+        ("Walmart Creator", "Creator affiliate program for general retail, including toys and games aisles.", "https://www.walmart.com/creator", "Walmart Creator"),
+    ]
+    apply_html = "".join(
+        partner_card("Apply next", "apply", name, blurb, href, cta) for name, blurb, href, cta in apply
+    )
+    return head(
+        "Affiliate and partner programs | Pokémon Decklists",
+        "Live AdSense, TCGplayer, and Amazon partnerships, plus official signup pages for more affiliate networks. Fan site — not affiliated with Nintendo.",
+        "/partners.html",
+        "/img/art/art-shop-wall.jpg",
+        image_alt="Original painting of a card-shop gallery wall",
+    ) + header("partners") + f"""
+    <main id="main" class="single">
+      <img class="market-banner" src="/img/art/art-shop-wall.jpg" alt="Original painting of a card-shop gallery wall" width="1600" height="900">
+      <div class="card hero">
+        <div class="crumb"><a href="/">Home</a> / Partners</div>
+        <h1 class="page-title">Partners</h1>
+        <p>Three programs are already wired on this site. Everything under <strong>Apply next</strong> is an official public signup page — use them to enroll. We will not paste fake partner IDs. Discord remains a placeholder with no invite link.</p>
+        <div class="section-title"><h3>Already live</h3></div>
+        <div class="partner-grid">{''.join(live)}</div>
+        <div class="section-title" style="margin-top:22px"><h3>Apply next</h3><div class="muted">{len(apply)} official programs</div></div>
+        <p class="muted">These are opportunities to sign up. Approval is on their side. After you are in, we can hang the real tracking links next to the live TCGplayer and Amazon ones.</p>
+        <div class="partner-grid">{apply_html}</div>
+        <p class="amazon-disclosure-line">As an Amazon Associate I earn from qualifying purchases. TCGplayer links are affiliate links. Not affiliated with Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast.</p>
+      </div>
+    </main>
+""" + footer()
+
+
 def extras():
     (ROOT / "ads.txt").write_text("google.com, pub-1074015774205047, DIRECT, f08c47fec0942fa0\n")
     (ROOT / "robots.txt").write_text(
@@ -1849,6 +2365,14 @@ def extras():
         "/tier-list.html": ("weekly", "0.9"),
         "/collectibles/": ("daily", "0.9"),
         "/price-tracker.html": ("daily", "0.8"),
+        "/market/": ("daily", "0.9"),
+        "/market/watchlist.html": ("weekly", "0.7"),
+        "/market/binder.html": ("weekly", "0.7"),
+        "/market/compare.html": ("weekly", "0.7"),
+        "/market/alerts.html": ("weekly", "0.7"),
+        "/market/staples.html": ("daily", "0.8"),
+        "/partners.html": ("monthly", "0.7"),
+        "/gallery.html": ("monthly", "0.6"),
         "/events.html": ("weekly", "0.8"),
         "/guides/": ("monthly", "0.7"),
         "/shop/": ("monthly", "0.6"),
@@ -1859,6 +2383,8 @@ def extras():
         "/", "/formats/", "/format.html", "/events.html", "/tier-list.html",
         "/price-tracker.html", "/collectibles/", "/collectibles/cards/", "/collectibles/sets/",
         "/collectibles/movers.html", "/shop/", "/guides/", "/privacy.html", "/search.html",
+        "/market/", "/market/watchlist.html", "/market/binder.html", "/market/compare.html",
+        "/market/alerts.html", "/market/staples.html", "/partners.html", "/gallery.html",
     ]
     urls += [f"/formats/{f['id']}.html" for f in FORMATS]
     urls += [f"/shop/{k}.html" for k in SHOP]
@@ -1909,6 +2435,7 @@ def extras():
         <p class="home-actions">
           <a class="btn-primary" href="/">Home</a>
           <a class="home-ghost" href="/formats/">Formats</a>
+          <a class="home-ghost" href="/market/">Market</a>
           <a class="home-ghost" href="/search.html">Search</a>
         </p>
       </div>
@@ -1955,6 +2482,14 @@ def main():
     write("format.html", page_rules())
     write("privacy.html", page_privacy())
     write("search.html", page_search())
+    write("market/index.html", page_market_hub())
+    write("market/watchlist.html", page_watchlist())
+    write("market/binder.html", page_binder())
+    write("market/compare.html", page_compare())
+    write("market/alerts.html", page_alerts())
+    write("market/staples.html", page_staples())
+    write("gallery.html", page_gallery())
+    write("partners.html", page_partners())
     extras()
     print("lists", len(LISTS))
 
