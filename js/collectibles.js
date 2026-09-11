@@ -28,7 +28,7 @@
         a.className = "collect-card";
         a.href = row.href;
         a.innerHTML =
-          "<img src=\"" + (row.image || "") + "\" alt=\"\">" +
+          "<img src=\"" + (row.image || "") + "\" alt=\"" + String(row.name || "").replace(/"/g, "&quot;") + "\" width=\"245\" height=\"342\" loading=\"lazy\">" +
           "<div class=\"collect-card-copy\">" +
           "<strong>" + row.name + "</strong>" +
           "<div class=\"muted\">" + row.set + " · " + row.number + (row.artist ? " · " + row.artist : "") + "</div>" +
