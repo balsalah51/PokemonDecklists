@@ -126,6 +126,8 @@
       var open = btn.getAttribute("aria-expanded") === "true";
       btn.setAttribute("aria-expanded", open ? "false" : "true");
       nav.classList.toggle("is-open", !open);
+      var header = btn.closest(".header-inner");
+      if (header) header.classList.toggle("is-open", !open);
     });
   }
 

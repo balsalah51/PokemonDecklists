@@ -830,7 +830,16 @@ h1.page-title,.hero h1.page-title{
 @media (max-width:880px){
   .header-inner{grid-template-columns:1fr auto;padding:10px 16px}
   .header-search{display:none}
+  .header-inner.is-open .header-search{
+    display:flex;grid-column:1/-1;max-width:none;justify-self:stretch;order:3
+  }
   .nav-toggle{display:inline-flex;grid-column:2;grid-row:1}
+  .nav-toggle:focus{outline:none}
+  .nav-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .nav-toggle[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+  .site-nav{
+    display:none;grid-column:1/-1;flex-direction:column;gap:2px;padding:8px 0 4px;order:2
+  }
   .site-nav{
     display:none;grid-column:1/-1;flex-direction:column;gap:2px;padding:8px 0 4px
   }
