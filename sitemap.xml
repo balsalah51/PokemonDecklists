@@ -22,6 +22,10 @@
   <url><loc>https://pokemondecklists.com/market/staples.html</loc><lastmod>2026-09-11</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://pokemondecklists.com/partners.html</loc><lastmod>2026-09-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://pokemondecklists.com/gallery.html</loc><lastmod>2026-09-11</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pokemondecklists.com/desk.html</loc><lastmod>2026-09-11</lastmod><changefreq>daily</changefreq><priority>0.85</priority></url>
+  <url><loc>https://pokemondecklists.com/about.html</loc><lastmod>2026-09-11</lastmod><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://pokemondecklists.com/methodology.html</loc><lastmod>2026-09-11</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://pokemondecklists.com/faq.html</loc><lastmod>2026-09-11</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://pokemondecklists.com/formats/standard.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://pokemondecklists.com/formats/expanded.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://pokemondecklists.com/formats/glc.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
@@ -48,6 +52,11 @@
   <url><loc>https://pokemondecklists.com/guides/collectibles.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://pokemondecklists.com/guides/championship-series.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://pokemondecklists.com/guides/rotation-2026.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pokemondecklists.com/guides/how-to-read-a-list.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pokemondecklists.com/guides/buying-singles.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pokemondecklists.com/guides/event-prep.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pokemondecklists.com/guides/pocket-vs-paper.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://pokemondecklists.com/guides/glc-building.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://pokemondecklists.com/guides/types/grass.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://pokemondecklists.com/guides/types/fire.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://pokemondecklists.com/guides/types/water.html</loc><lastmod>2026-09-11</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
