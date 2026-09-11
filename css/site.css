@@ -981,7 +981,12 @@ h1.page-title,.hero h1.page-title{
 #binder-sum,#alert-hits{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--accent-bleed)}
 .art-inline{display:flex;gap:8px;margin:12px 0;overflow:auto}
 .art-inline img{height:120px;width:auto;border-radius:10px}
+button.home-ghost[aria-pressed="true"]{
+  background:var(--accent);color:#fff;border-color:var(--accent)
+}
 @media (max-width:880px){
+  .hero-fan{display:none}
+  .home-splash-copy{max-width:none}
   .art-rail{grid-template-columns:repeat(4,1fr)}
   .card-wall{grid-template-columns:repeat(4,1fr)}
   .market-tools{grid-template-columns:1fr 1fr}
