@@ -25,7 +25,7 @@ CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
 NOW = "2026-09-11"
-CSS_V = "pkdl-8"
+CSS_V = "pkdl-9"
 
 TYPES = [
     ("grass", "Grass", "#4c9a2a"),
@@ -1300,7 +1300,7 @@ def art_rail(n: int = 12) -> str:
     return f'<div class="art-rail" aria-label="Original Pokémon-style artwork">{"".join(tiles)}</div>'
 
 
-def card_fan_html(n: int = 7) -> str:
+def card_fan_html(n: int = 5) -> str:
     recs = price_records()[:n]
     tiles = []
     for r in recs:
@@ -1960,6 +1960,8 @@ def page_guide(slug, title, blurb):
         related = [x for x in LISTS if x["format"] == "standard"][:10]
     if slug == "expanded":
         related = [x for x in LISTS if x["format"] == "expanded"][:10]
+    if not related:
+        related = sorted(LISTS, key=lambda x: x.get("date") or "", reverse=True)[:8]
     body = GUIDE_BODY.get(slug) or f"<p>{e(blurb)}</p>"
     extra = ld_script(
         {

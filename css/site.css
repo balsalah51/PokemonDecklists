@@ -850,7 +850,7 @@ h1.page-title,.hero h1.page-title{
   .wrap{padding:16px 16px 36px}
 }
 .home-splash-copy{
-  max-width:min(38rem,62%);
+  max-width:min(34rem,50%);
 }
 .home-splash .hero-fan{z-index:2}
 .ticker-track{display:flex;gap:12px;min-width:min-content}
@@ -910,12 +910,12 @@ h1.page-title,.hero h1.page-title{
 /* Art, market, homepage v2 */
 .home-splash{position:relative}
 .hero-fan{
-  position:absolute;right:3%;top:50%;z-index:2;
+  position:absolute;right:1%;top:50%;z-index:2;
   display:flex;align-items:flex-end;gap:0;
-  transform:translateY(-48%);
+  transform:translateY(-42%);
   pointer-events:none
 }
-.hero-fan a{pointer-events:auto;display:block;width:92px;margin-left:-28px;transition:transform .18s ease}
+.hero-fan a{pointer-events:auto;display:block;width:84px;margin-left:-32px;transition:transform .18s ease}
 .hero-fan a:first-child{margin-left:0}
 .hero-fan img{
   width:92px;height:128px;object-fit:cover;border-radius:8px;
