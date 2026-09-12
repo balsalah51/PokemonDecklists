@@ -25,7 +25,7 @@ CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
 NOW = "2026-09-11"
-CSS_V = "pkdl-9"
+CSS_V = "pkdl-10"
 
 TYPES = [
     ("grass", "Grass", "#4c9a2a"),
@@ -109,7 +109,7 @@ SHOP = {
     ],
     "dice": [
         ("Power counter dice (+1000 / −1000)", "32-piece set of +1000 to +6000 and −1000 to −6000 counters. Built for damage tracking.", "dice-power.jpg", "https://amzn.to/46pbKUi"),
-        ("Official One Piece Premium Dice Set", "Licensed dice in a collectible tin. Same shop SKU as OPDB — works as a table set for any TCG.", "dice-luffy.jpg", "https://amzn.to/4xEOaiF"),
+        ("Official One Piece Premium Dice Set", "Licensed dice in a collectible tin. Same shop SKU as OPDB - works as a table set for any TCG.", "dice-luffy.jpg", "https://amzn.to/4xEOaiF"),
         ("Yiotfandoll 16 mm D6 (blue / black)", "10 acrylic 16 mm six-siders. Cheap table set for prize markers or kitchen-table counters.", "dice-acrylic.jpg", "https://amzn.to/4gQtpdA"),
     ],
     "playmats": [
@@ -118,7 +118,7 @@ SHOP = {
     ],
     "deck-boxes": [
         ("Wanted poster deck box", "Themed box with commander display. Holds about 120 singles or 100 double-sleeved cards.", "deckbox-wanted.jpg", "https://amzn.to/4xuKTlW"),
-        ("4-pack magnetic deck boxes", "Four magnetic boxes. Each holds 100+ double-sleeved cards — enough for several 60-card lists.", "deckbox-4pack.jpg", "https://amzn.to/3SSyyJ0"),
+        ("4-pack magnetic deck boxes", "Four magnetic boxes. Each holds 100+ double-sleeved cards - enough for several 60-card lists.", "deckbox-4pack.jpg", "https://amzn.to/3SSyyJ0"),
         ("MAKHISTORY Commander deck box", "Magnetic deck case with dice tray, 35pt holder, and two dividers. Fits 100+ double-sleeved cards.", "deckbox-makhistory.jpg", "https://amzn.to/4gVNBuw"),
         ("UAONO Commander deck box", "Magnetic commander box. Fits 100 double-sleeved cards and a toploader.", "deckbox-uaono.jpg", "https://amzn.to/4zVuIzE"),
     ],
@@ -135,14 +135,22 @@ SHOP_TITLES = {
 }
 
 
+def no_emdash(s: str) -> str:
+    """Never ship U+2014. Spaced hyphen is the site style."""
+    t = s.replace(" \u2014 ", " - ").replace("\u2014", " - ")
+    t = t.replace(" \u2015 ", " - ").replace("\u2015", " - ")
+    return t
+
+
 def e(s) -> str:
-    return htmlmod.escape("" if s is None else htmlmod.unescape(str(s)))
+    raw = "" if s is None else htmlmod.unescape(str(s))
+    return htmlmod.escape(no_emdash(raw))
 
 
 def ld_script(obj) -> str:
     return (
         '  <script type="application/ld+json">'
-        + json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+        + no_emdash(json.dumps(obj, ensure_ascii=False, separators=(",", ":")))
         + "</script>\n"
     )
 
@@ -263,7 +271,6 @@ def crumbs_for(path: str, title: str) -> list[tuple[str, str]]:
         "format.html": ("Format rules", "/format.html"),
         "404.html": ("Page not found", "/404.html"),
         "partners.html": ("Partners", "/partners.html"),
-        "gallery.html": ("Artwork gallery", "/gallery.html"),
         "desk.html": ("The Desk", "/desk.html"),
         "about.html": ("About", "/about.html"),
         "methodology.html": ("Methodology", "/methodology.html"),
@@ -306,7 +313,7 @@ def tcg_search(name: str, setc: str = "", num: str = "") -> str:
 
 
 def clean(s: str) -> str:
-    return htmlmod.unescape(s or "")
+    return no_emdash(htmlmod.unescape(s or ""))
 
 
 def basic_type(name: str) -> str | None:
@@ -438,7 +445,6 @@ def footer(current: str = "") -> str:
         <nav aria-label="Collect">
           <p class="footer-head">Collect</p>
           <a href="/collectibles/">Collectibles</a>
-          <a href="/gallery.html">Artwork gallery</a>
           <a href="/shop/">Shop</a>
           <a href="/partners.html">Partner programs</a>
           <a href="/about.html">About</a>
@@ -446,7 +452,7 @@ def footer(current: str = "") -> str:
           <a href="/faq.html">FAQ</a>
           <a href="/search.html">Search</a>
           <a href="/privacy.html">Privacy</a>
-          <span class="discord-nav" title="Discord coming soon">Discord — invite soon</span>
+          <span class="discord-nav" title="Discord coming soon">Discord - invite soon</span>
         </nav>
       </div>
       <p class="footer-legal">© <span id="year"></span> Pokémon Decklists. As an Amazon Associate I earn from qualifying purchases. TCGplayer links are affiliate links.</p>
@@ -467,7 +473,7 @@ def head(
     image: str = "/img/pkdl-hero.jpg",
     extra: str = "",
     og_type: str = "website",
-    image_alt: str = "Pokémon Decklists — Pokémon TCG decklists by format",
+    image_alt: str = "Pokémon Decklists: Pokémon TCG decklists by format",
     published: str | None = None,
     robots: str = "index, follow, max-image-preview:large",
 ) -> str:
@@ -602,7 +608,7 @@ def format_stats(fmt_id: str):
 def write(path: str, content: str):
     p = ROOT / path.lstrip("/")
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(content)
+    p.write_text(no_emdash(content))
     print("write", path)
 
 
@@ -641,14 +647,13 @@ def page_index():
         for f in FORMATS
     )
     n_cards = len(price_records())
-    n_art = len(ORIG_ART)
+    worlds_n = sum(1 for x in LISTS if "World Championship" in (x.get("event") or ""))
     fan = card_fan_html()
-    rail = art_rail()
     tick = movers_ticker()
     wall = card_wall_html()
     return head(
         "Pokémon TCG Decklists | Standard, Pocket & GLC",
-        "Tournament Pokémon TCG decklists by format — Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. August–September 2026 lists, card prices, and shop.",
+        "Tournament Pokémon TCG decklists by format: Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. August–September 2026 lists, card prices, and shop.",
         "/",
         extra=extra,
         image_alt="Vintage-style fire dragon banner for Pokémon Decklists",
@@ -660,7 +665,7 @@ def page_index():
         <div class="home-splash-copy">
           <p class="splash-kicker">Fan journal · August–September 2026</p>
           <h1>Pokémon Decklists</h1>
-          <p class="splash-lead">Tournament lists, a price desk, and original writing — Standard, Pocket, and Gym Leader Challenge first.</p>
+          <p class="splash-lead">Tournament lists, a price desk, and original writing. Standard, Pocket, and Gym Leader Challenge first.</p>
           <div class="formats">
             <span>Standard</span>
             <span>Pocket</span>
@@ -678,7 +683,7 @@ def page_index():
         <li><strong>{len(LISTS):,}</strong><span>tournament lists</span></li>
         <li><strong>5</strong><span>formats</span></li>
         <li><strong>{n_cards}</strong><span>priced singles</span></li>
-        <li><strong>{n_art}</strong><span>original paintings</span></li>
+        <li><strong>{worlds_n}</strong><span>Worlds lists</span></li>
       </ul>
 
       <p class="trust-strip">
@@ -695,24 +700,11 @@ def page_index():
           <h3>From the Desk</h3>
           <a href="/guides/">All guides →</a>
         </div>
-        <p class="muted">Original writing on top of the tables — how to read a list, how prices get here, what Worlds actually changed.</p>
+        <p class="muted">Original writing on top of the tables: how to read a list, how prices get here, what Worlds actually changed.</p>
 {essay_grid_html()}
       </section>
 
 {tick}
-
-      <section class="home-gallery-band" aria-label="Original artwork">
-        <div class="section-title">
-          <h3>Original gallery</h3>
-          <a href="/gallery.html">All paintings →</a>
-        </div>
-        <p class="muted">Fan paintings in a Pokémon-card style — original creatures, not licensed prints. Card photos below are real singles from the tracker.</p>
-{rail}
-        <div class="home-wide-art">
-          <a href="/gallery.html"><img src="/img/art/art-sleeved-spread.jpg" alt="Sleeved cards spread across a hobby desk" width="1280" height="720" loading="lazy"></a>
-          <a href="/market/"><img src="/img/art/art-market-desk.jpg" alt="A trading-card market desk" width="1280" height="720" loading="lazy"></a>
-        </div>
-      </section>
 
       <div class="home-thirds">
         <section class="home-third home-third-play" id="competitive">
@@ -732,7 +724,7 @@ def page_index():
           <div class="home-third-head">
             <p class="kicker">Market</p>
             <h2>Price community</h2>
-            <p>Watchlist, binder P&amp;L, alerts, and print compare — stored in this browser.</p>
+            <p>Watchlist, binder P&amp;L, alerts, and print compare, stored in this browser.</p>
           </div>
           <div class="home-third-body">
             <a class="half-link" href="/market/"><strong>Market hub</strong><span>Desk, staples, and tools</span></a>
@@ -752,7 +744,7 @@ def page_index():
             <a class="half-link" href="/collectibles/"><strong>Collectibles</strong><span>Catalog, sets, card pages</span></a>
             <a class="half-link" href="/shop/"><strong>Amazon shop</strong><span>Sleeves, dice, mats, boxes</span></a>
             <a class="half-link" href="/partners.html"><strong>Partner programs</strong><span>Live IDs plus official sign-up pages</span></a>
-            <a class="half-link" href="/gallery.html"><strong>Artwork</strong><span>{n_art} original paintings</span></a>
+            <a class="half-link" href="/desk.html"><strong>The Desk</strong><span>Window report after Worlds</span></a>
           </div>
         </section>
       </div>
@@ -822,7 +814,7 @@ def page_index():
           <span class="partner-pill live">AdSense live</span>
           <span class="partner-pill live">TCGplayer live</span>
           <span class="partner-pill live">Amazon live</span>
-          <span class="partner-pill apply">Impact · eBay · Whatnot · TikTok Shop — apply next</span>
+          <span class="partner-pill apply">Impact · eBay · Whatnot · TikTok Shop: apply next</span>
         </div>
       </section>
     </main>
@@ -911,7 +903,7 @@ def page_format(fmt: dict) -> str:
 
         <section style="margin-top:22px">
           <div class="section-title"><h3>Types in this format</h3><div class="muted">From posted lists</div></div>
-          <p class="muted">Same idea as OPDB color tiles — Pokémon types instead of leader colors.</p>
+          <p class="muted">Same idea as OPDB color tiles - Pokémon types instead of leader colors.</p>
           <div class="color-pills">{type_pills(type_c, fmt['id'])}</div>
           <div class="combo-grid" style="margin-top:14px">{type_section}</div>
         </section>
@@ -1264,42 +1256,6 @@ def price_records() -> list[dict]:
     return rows
 
 
-ORIG_ART = [
-    ("/img/art/art-fire-dragon.jpg", "Original fire-dragon painting", "wide"),
-    ("/img/art/art-water-serpent.jpg", "Original water-serpent painting", "portrait"),
-    ("/img/art/art-forest-guardian.jpg", "Original forest-guardian painting", "portrait"),
-    ("/img/art/art-storm-beast.jpg", "Original storm-beast painting", "portrait"),
-    ("/img/art/art-crystal-fox.jpg", "Original crystal-fox painting", "portrait"),
-    ("/img/art/art-steel-beetle.jpg", "Original steel-beetle painting", "portrait"),
-    ("/img/art/art-stone-ram.jpg", "Original stone-ram painting", "portrait"),
-    ("/img/art/art-mist-panther.jpg", "Original mist-panther painting", "portrait"),
-    ("/img/art/art-glow-moth.jpg", "Original glow-moth painting", "portrait"),
-    ("/img/art/art-spark-sparrow.jpg", "Original lightning-sparrow painting", "portrait"),
-    ("/img/art/art-night-wolf.jpg", "Original night-wolf painting", "portrait"),
-    ("/img/art/art-blossom-sprite.jpg", "Original blossom-sprite painting", "portrait"),
-    ("/img/art/art-summit-bear.jpg", "Original summit-bear painting", "portrait"),
-    ("/img/art/art-star-owl.jpg", "Original star-owl painting", "portrait"),
-    ("/img/art/art-ice-crane.jpg", "Original ice-crane painting", "portrait"),
-    ("/img/art/art-venom-bloom.jpg", "Original venom-bloom painting", "portrait"),
-    ("/img/art/art-sky-wyvern.jpg", "Original sky-wyvern painting", "portrait"),
-    ("/img/art/art-market-desk.jpg", "Original painting of a trading-card market desk", "wide"),
-    ("/img/art/art-binder.jpg", "Original painting of a collector’s binder", "wide"),
-    ("/img/art/art-gallery.jpg", "Original painting of a card-art gallery", "wide"),
-    ("/img/art/art-sleeved-spread.jpg", "Original painting of sleeved cards on a desk", "wide"),
-    ("/img/art/art-shop-wall.jpg", "Original painting of a card-shop gallery wall", "wide"),
-]
-
-
-def art_rail(n: int = 12) -> str:
-    portraits = [a for a in ORIG_ART if a[2] == "portrait"][:n]
-    tiles = []
-    for src, alt, _ in portraits:
-        tiles.append(
-            f'<a href="/gallery.html"><img src="{e(src)}" alt="{e(alt)}" width="245" height="342" loading="lazy" decoding="async"></a>'
-        )
-    return f'<div class="art-rail" aria-label="Original Pokémon-style artwork">{"".join(tiles)}</div>'
-
-
 def card_fan_html(n: int = 5) -> str:
     recs = price_records()[:n]
     tiles = []
@@ -1335,7 +1291,7 @@ def card_wall_html(n: int = 24) -> str:
     for r in price_records()[:n]:
         tiles.append(
             f'<a class="wall-card" href="{e(r["href"])}">'
-            f'<img src="{e(r["image"])}" alt="{e(r["name"])} — {e(r["set"])} {e(r["number"])}" width="245" height="342" loading="lazy">'
+            f'<img src="{e(r["image"])}" alt="{e(r["name"])} ({e(r["set"])} {e(r["number"])})" width="245" height="342" loading="lazy">'
             f'<span class="cap">{e(r["name"])}<br>${(r["spot"] or 0):.2f}</span></a>'
         )
     return f'<div class="card-wall">{"".join(tiles)}</div>'
@@ -1467,7 +1423,7 @@ def digest_html() -> str:
         <div>
           <p class="kicker">This window · 1 Aug – 9 Sep 2026</p>
           <h2 class="desk-title">The room after Worlds</h2>
-          <p>A fan table of <strong>{len(LISTS):,}</strong> public lists. Standard is {counts.get("standard", 0)} of them. Pocket is {counts.get("pocket", 0)} — a Mega Evolution cup, not paper with fewer cards. GLC {counts.get("glc", 0)}, Unlimited {counts.get("unlimited", 0)}, Expanded {counts.get("expanded", 0)}. Worlds 2026 accounts for {worlds_n} rows. Andrew Hedrick won Masters on Dragapult; the weeks of online cups after San Francisco are here too.</p>
+          <p>A fan table of <strong>{len(LISTS):,}</strong> public lists. Standard is {counts.get("standard", 0)} of them. Pocket is {counts.get("pocket", 0)} - a Mega Evolution cup, not paper with fewer cards. GLC {counts.get("glc", 0)}, Unlimited {counts.get("unlimited", 0)}, Expanded {counts.get("expanded", 0)}. Worlds 2026 accounts for {worlds_n} rows. Andrew Hedrick won Masters on Dragapult; the weeks of online cups after San Francisco are here too.</p>
           {market_brief_html()}
           <p class="digest-cta"><a class="home-ghost" href="/desk.html">Open the Desk report</a> <a class="home-ghost" href="/methodology.html">How we source this</a></p>
         </div>
@@ -1510,7 +1466,7 @@ def collect_teaser_html() -> str:
     for m in movers:
         ch = m["change7"]
         cls = "up" if (ch or 0) >= 0 else "down"
-        label = "—" if ch is None else f"{ch:+.1f}%"
+        label = "-" if ch is None else f"{ch:+.1f}%"
         bits.append(
             f'<a class="collect-teaser" href="{m["href"]}"><img src="{e(m["image"])}" alt="{e(m["name"])}" width="36" height="50" loading="lazy">'
             f'<span><strong>{e(m["name"])}</strong><span class="{cls}">{label} 7d</span></span></a>'
@@ -1528,7 +1484,7 @@ def page_collectibles_hub():
         f'<li><a class="item" href="{m["href"]}"><div><div style="font-weight:700">{e(m["name"])}</div>'
         f'<div class="muted">{e(m["set"])} {e(m["number"])}' + (f' · {e(m["artist"])}' if m["artist"] else "") +
         f'</div></div><div class="{"up" if (m["change7"] or 0)>=0 else "down"}">'
-        + ("—" if m["change7"] is None else f"{m['change7']:+.1f}%")
+        + ("-" if m["change7"] is None else f"{m['change7']:+.1f}%")
         + "</div></a></li>"
         for m in movers
     )
@@ -1560,7 +1516,7 @@ def page_collectibles_hub():
           <a class="home-ghost" href="/collectibles/cards/">Card catalog</a>
           <a class="home-ghost" href="/collectibles/sets/">Sets</a>
           <a class="home-ghost" href="/collectibles/movers.html">Movers</a>
-          <a class="home-ghost" href="/gallery.html">Artwork</a>
+          <a class="home-ghost" href="/desk.html">The Desk</a>
         </div>
         <section style="margin-top:22px">
           <div class="section-title"><h3>Highest market</h3><div class="muted">{len(rows)} tracked singles</div></div>
@@ -1723,8 +1679,8 @@ def page_card(row: dict) -> str:
         facts.append(f'{row["regulation"]} mark')
     meta_line = " · ".join(facts)
     artist = f'<p class="muted">Illustrated by {e(row["artist"])}.</p>' if row.get("artist") else ""
-    ch7 = "—" if row["change7"] is None else f'{row["change7"]:+.1f}%'
-    ch30 = "—" if row["change30"] is None else f'{row["change30"]:+.1f}%'
+    ch7 = "-" if row["change7"] is None else f'{row["change7"]:+.1f}%'
+    ch30 = "-" if row["change30"] is None else f'{row["change30"]:+.1f}%'
     chart = spark_svg(row.get("series") or [])
     src = f'<p class="muted">Public TCGPlayer snapshots via <a href="{e(row.get("url") or "#")}" target="_blank" rel="noopener">Limitless</a>. Fair use for commentary and research.</p>' if row.get("url") else ""
     offer = {
@@ -1925,7 +1881,7 @@ def page_guides_index():
     )
     return head(
         "Pokémon TCG guides | Pokémon Decklists",
-        "Guides for Pokémon TCG formats, regulation marks, Worlds 2026, how to read a list, and types — with real decklists attached.",
+        "Guides for Pokémon TCG formats, regulation marks, Worlds 2026, how to read a list, and types - with real decklists attached.",
         "/guides/",
     ) + header("guides") + f"""
     <main id="main" class="single">
@@ -1933,7 +1889,7 @@ def page_guides_index():
         <div class="crumb"><a href="/">Home</a> / Guides</div>
         <p class="kicker">Field notes</p>
         <h1 class="page-title">Guides</h1>
-        <p class="lede">Writing that sits on top of the tables. Each topic page is a short brief plus lists from this window — not a wiki dump, not a scraped FAQ.</p>
+        <p class="lede">Writing that sits on top of the tables. Each topic page is a short brief plus lists from this window - not a wiki dump, not a scraped FAQ.</p>
         {essay_grid_html()}
         <section style="margin-top:28px">
           <div class="section-title"><h3>Topics</h3><div class="muted">{len(GUIDES)} briefs</div></div>
@@ -2251,14 +2207,6 @@ def page_market_hub():
           <div class="section-title"><h3>Highest market right now</h3><a href="/collectibles/cards/">Catalog →</a></div>
           {card_wall_html(16)}
         </section>
-        <section style="margin-top:22px">
-          <div class="section-title"><h3>Artwork at the desk</h3><a href="/gallery.html">Gallery →</a></div>
-          <div class="art-inline">
-            <img src="/img/art/art-binder.jpg" alt="Collector binder painting">
-            <img src="/img/art/art-gallery.jpg" alt="Card-art gallery painting">
-            <img src="/img/art/art-shop-wall.jpg" alt="Card-shop wall painting">
-          </div>
-        </section>
 """
     return page_market_shell(
         "Pokémon TCG price community | Pokémon Decklists",
@@ -2290,7 +2238,7 @@ def page_binder():
         "/market/binder.html",
         "binder",
         "Binder P&L",
-        "Add a print from a card page. Edit qty and what you paid. Totals use the latest spot we published — not a live brokerage.",
+        "Add a print from a card page. Edit qty and what you paid. Totals use the latest spot we published - not a live brokerage.",
         '<p id="binder-sum" hidden></p><div id="binder-list"></div>',
         "/img/art/art-binder.jpg",
         "Original painting of a collector’s binder",
@@ -2304,7 +2252,7 @@ def page_compare():
         "/market/compare.html",
         "compare",
         "Compare prints",
-        "Pick two singles from the tracker. Share the URL — the pair is in the query string.",
+        "Pick two singles from the tracker. Share the URL - the pair is in the query string.",
         """<div class="compare-pick">
           <label>Print A <select id="compare-a"></select></label>
           <label>Print B <select id="compare-b"></select></label>
@@ -2336,13 +2284,13 @@ def page_staples():
         thumb = (match or {}).get("image") or img
         if match:
             ch = match["change7"]
-            chs = "—" if ch is None else f"{ch:+.1f}%"
+            chs = "-" if ch is None else f"{ch:+.1f}%"
             cls = "" if ch is None else ("up" if ch >= 0 else "down")
             spot = f'${(match["spot"] or 0):.2f}'
             open_ = f'<a class="home-ghost" href="{e(match["href"])}">Open</a>'
             pic = f'<a href="{e(match["href"])}"><img src="{e(thumb)}" alt="{e(name)}" width="40" height="56"></a>'
         else:
-            chs, cls, spot, open_ = "—", "", "—", ""
+            chs, cls, spot, open_ = "-", "", "-", ""
             pic = f'<img src="{e(thumb)}" alt="{e(name)}" width="40" height="56">' if thumb else ""
         bits.append(
             f'<tr><td>{pic}</td><td style="font-weight:700">{e(name)}</td>'
@@ -2358,39 +2306,6 @@ def page_staples():
         "Counted from Pokémon rows in the current list window. If we track a print with the same name, you get spot, trend, and the card page.",
         "".join(bits),
     )
-
-
-def page_gallery():
-    portraits = "".join(
-        f'<a href="{e(src)}"><img src="{e(src)}" alt="{e(alt)}" width="367" height="512" loading="lazy"><span>{e(alt)}</span></a>'
-        for src, alt, kind in ORIG_ART
-        if kind == "portrait"
-    )
-    wides = "".join(
-        f'<a href="{e(src)}"><img src="{e(src)}" alt="{e(alt)}" width="1280" height="720" loading="lazy"><span>{e(alt)}</span></a>'
-        for src, alt, kind in ORIG_ART
-        if kind == "wide"
-    )
-    return head(
-        "Original Pokémon-style artwork | Pokémon Decklists",
-        "Original fan paintings in a Pokémon trading-card style. Not official Pokémon art and not affiliated with Nintendo or The Pokémon Company.",
-        "/gallery.html",
-        "/img/art/art-gallery.jpg",
-        image_alt="Original painting of a card-art gallery",
-    ) + header() + f"""
-    <main id="main" class="single">
-      <img class="market-banner" src="/img/art/art-gallery.jpg" alt="Original painting of a card-art gallery" width="1600" height="900">
-      <div class="card hero">
-        <div class="crumb"><a href="/">Home</a> / Artwork gallery</div>
-        <h1 class="page-title">Artwork gallery</h1>
-        <p>Original paintings made for this site. Creature designs are invented. They are not official Pokémon, not set art, and not a substitute for licensed cards. Real card photos live on <a href="/collectibles/">collectibles</a>.</p>
-        <div class="section-title"><h3>Creatures</h3><div class="muted">{sum(1 for a in ORIG_ART if a[2]=="portrait")} portraits</div></div>
-        <div class="gallery-grid">{portraits}</div>
-        <div class="section-title" style="margin-top:22px"><h3>Desk and shop</h3></div>
-        <div class="gallery-grid gallery-wide">{wides}</div>
-      </div>
-    </main>
-""" + footer()
 
 
 def partner_card(tag: str, tag_class: str, name: str, blurb: str, href: str, cta: str) -> str:
@@ -2423,7 +2338,7 @@ def page_partners():
             "Live",
             "live",
             "Amazon Associates",
-            "Shop sleeves, dice, playmats, deck boxes, and table extras. Same amzn.to SKUs as the shop — no extra tracking IDs invented.",
+            "Shop sleeves, dice, playmats, deck boxes, and table extras. Same amzn.to SKUs as the shop - no extra tracking IDs invented.",
             "/shop/",
             "Open the Amazon shop",
         ),
@@ -2448,7 +2363,7 @@ def page_partners():
     )
     return head(
         "Affiliate and partner programs | Pokémon Decklists",
-        "Live AdSense, TCGplayer, and Amazon partnerships, plus official signup pages for more affiliate networks. Fan site — not affiliated with Nintendo.",
+        "Live AdSense, TCGplayer, and Amazon partnerships, plus official signup pages for more affiliate networks. Fan site - not affiliated with Nintendo.",
         "/partners.html",
         "/img/art/art-shop-wall.jpg",
         image_alt="Original painting of a card-shop gallery wall",
@@ -2458,7 +2373,7 @@ def page_partners():
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Partners</div>
         <h1 class="page-title">Partners</h1>
-        <p>Three programs are already wired on this site. Everything under <strong>Apply next</strong> is an official public signup page — use them to enroll. We will not paste fake partner IDs. Discord remains a placeholder with no invite link.</p>
+        <p>Three programs are already wired on this site. Everything under <strong>Apply next</strong> is an official public signup page - use them to enroll. We will not paste fake partner IDs. Discord remains a placeholder with no invite link.</p>
         <div class="section-title"><h3>Already live</h3></div>
         <div class="partner-grid">{''.join(live)}</div>
         <div class="section-title" style="margin-top:22px"><h3>Apply next</h3><div class="muted">{len(apply)} official programs</div></div>
@@ -2480,7 +2395,7 @@ def page_desk():
         {
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": "The Desk — Pokémon TCG window report",
+            "headline": "The Desk - Pokémon TCG window report",
             "datePublished": NOW,
             "author": {"@type": "Organization", "name": SITE},
             "publisher": {"@id": CANON + "/#org"},
@@ -2503,7 +2418,7 @@ def page_desk():
         <h1 class="page-title">The Desk</h1>
         <p class="lede">A fan journal sitting on {len(LISTS):,} public lists. Not a rumor mill. Not a shopfront wearing a magazine costume. The tables first, then the sentences.</p>
         <div class="prose">
-          <p>Worlds 2026 is over. The paper is still Standard: H, I, and J. Hedrick’s Dragapult is the headline and, in this window, also the plurality — one hundred Standard lists under that name, plus Dusknoir and Blaziken cousins. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking are the next seats, not a surprise “dead format.”</p>
+          <p>Worlds 2026 is over. The paper is still Standard: H, I, and J. Hedrick’s Dragapult is the headline and, in this window, also the plurality - one hundred Standard lists under that name, plus Dusknoir and Blaziken cousins. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking are the next seats, not a surprise “dead format.”</p>
           <p>Pocket is a different sport. {counts.get("pocket", 0)} lists, Mega Lucario and Mega Altaria at the front. If you drive to a League Challenge with a 20-card screenshot, you will be illegal. Read <a href="/guides/pocket-vs-paper.html">Pocket vs paper</a> before you sleeve either.</p>
           <p>GLC remains the gym: singleton, one type. Psychic and Colorless posted the most. Expanded is a small table ({counts.get("expanded", 0)} lists). Unlimited is the vintage cups ({counts.get("unlimited", 0)}). They belong here because they posted, not because they are Standard.</p>
         </div>
@@ -2539,7 +2454,7 @@ def page_about():
         <h1 class="page-title">About</h1>
         <p class="lede">Pokémon Decklists is a fan journal for tournament lists, a price desk for the singles in those lists, and original writing about how to read both.</p>
         <div class="prose">
-          <p>It is modeled on the same idea as One Piece Deck Base: format hubs, public tables, sleeves in a shop, prices with affiliate buy links. The Pokémon version is organized by <strong>format</strong> — Standard, Pocket, Gym Leader Challenge, Expanded, Unlimited — because Pokémon does not sit under a leader portrait.</p>
+          <p>It is modeled on the same idea as One Piece Deck Base: format hubs, public tables, sleeves in a shop, prices with affiliate buy links. The Pokémon version is organized by <strong>format</strong> - Standard, Pocket, Gym Leader Challenge, Expanded, Unlimited - because Pokémon does not sit under a leader portrait.</p>
           <p>We are not Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast. We are not Limitless. Card images and tournament lists are used under fair use for commentary, reporting, and research from publicly posted sources.</p>
           <p>Advertising is Google AdSense (publisher <code>{ADS}</code>). Singles buy buttons are TCGplayer via Impact (7670706 / 1780961). The shop is Amazon Associates. Other networks on the <a href="/partners.html">partners</a> page are application links until an account is approved.</p>
           <p>Watchlist, binder, and alerts store in your browser. Discord is a placeholder with no invite. There is no account system.</p>
@@ -2566,7 +2481,7 @@ def page_methodology():
           <h3>Lists</h3>
           <p>Rows come from public Limitless TCG tables (Worlds 2026) and Limitless Play standings (online cups). A list is on this site if a full public table posted in the 1 August–9 September 2026 window. We do not invent placings. The source URL on a list page is the authority if we disagree with it.</p>
           <h3>Formats</h3>
-          <p>Tags are Standard, Expanded, Gym Leader Challenge, Pocket, and Unlimited. Pocket is not paper. GLC is not Standard with a type filter. Mixing those on purpose is how you show up illegal — see the guides.</p>
+          <p>Tags are Standard, Expanded, Gym Leader Challenge, Pocket, and Unlimited. Pocket is not paper. GLC is not Standard with a type filter. Mixing those on purpose is how you show up illegal - see the guides.</p>
           <h3>Prices</h3>
           <p>Spot, 7-day, and 30-day figures are public TCGPlayer market snapshots carried via Limitless for singles that appeared in this window. Charts are not a live brokerage. Buy buttons wrap the live TCGplayer Impact partner link.</p>
           <h3>Staples</h3>
@@ -2671,7 +2586,6 @@ def extras():
         "/market/alerts.html": ("weekly", "0.7"),
         "/market/staples.html": ("daily", "0.8"),
         "/partners.html": ("monthly", "0.7"),
-        "/gallery.html": ("monthly", "0.6"),
         "/events.html": ("weekly", "0.8"),
         "/guides/": ("monthly", "0.7"),
         "/desk.html": ("daily", "0.85"),
@@ -2687,7 +2601,7 @@ def extras():
         "/price-tracker.html", "/collectibles/", "/collectibles/cards/", "/collectibles/sets/",
         "/collectibles/movers.html", "/shop/", "/guides/", "/privacy.html", "/search.html",
         "/market/", "/market/watchlist.html", "/market/binder.html", "/market/compare.html",
-        "/market/alerts.html", "/market/staples.html", "/partners.html", "/gallery.html",
+        "/market/alerts.html", "/market/staples.html", "/partners.html",
         "/desk.html", "/about.html", "/methodology.html", "/faq.html",
     ]
     urls += [f"/formats/{f['id']}.html" for f in FORMATS]
@@ -2751,6 +2665,10 @@ def extras():
     if stale.exists():
         stale.unlink()
         print("removed", stale)
+    stale_gallery = ROOT / "gallery.html"
+    if stale_gallery.exists():
+        stale_gallery.unlink()
+        print("removed", stale_gallery)
     (ROOT / ".nojekyll").write_text("")
 
 
@@ -2792,7 +2710,6 @@ def main():
     write("market/compare.html", page_compare())
     write("market/alerts.html", page_alerts())
     write("market/staples.html", page_staples())
-    write("gallery.html", page_gallery())
     write("partners.html", page_partners())
     write("desk.html", page_desk())
     write("about.html", page_about())

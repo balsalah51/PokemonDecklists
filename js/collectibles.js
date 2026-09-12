@@ -1,6 +1,6 @@
 (function () {
   function money(n) {
-    if (n == null || isNaN(n)) return "—";
+    if (n == null || isNaN(n)) return "-";
     return "$" + Number(n).toFixed(2);
   }
 

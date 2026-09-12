@@ -19,7 +19,7 @@
   }
 
   function money(n) {
-    if (n == null || isNaN(n)) return "—";
+    if (n == null || isNaN(n)) return "-";
     return "$" + Number(n).toFixed(2);
   }
 
@@ -84,7 +84,7 @@
     if (!root) return;
     var state = load();
     if (!state.watch.length) {
-      root.innerHTML = '<p class="muted">Nothing watched yet. Open a collectible card and tap Watch — it stays in this browser.</p>';
+      root.innerHTML = '<p class="muted">Nothing watched yet. Open a collectible card and tap Watch - it stays in this browser.</p>';
       return;
     }
     root.innerHTML = state.watch
@@ -305,7 +305,7 @@
           "</div><div class=\"" +
           (ch == null ? "" : ch >= 0 ? "up" : "down") +
           '">' +
-          (ch == null ? "—" : (ch >= 0 ? "+" : "") + Number(ch).toFixed(1) + "% 7d") +
+          (ch == null ? "-" : (ch >= 0 ? "+" : "") + Number(ch).toFixed(1) + "% 7d") +
           "</div></a>" +
           '<a class="shop-buy" href="' +
           row.buy +
