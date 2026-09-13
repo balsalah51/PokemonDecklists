@@ -24,7 +24,7 @@ SHORT = "PKMN"
 CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
-NOW = "2026-09-11"
+NOW = "2026-09-13"
 CSS_V = "pkdl-10"
 
 TYPES = [
@@ -1421,7 +1421,7 @@ def digest_html() -> str:
     return f"""
       <section class="digest" id="window">
         <div>
-          <p class="kicker">This window · 1 Aug – 9 Sep 2026</p>
+          <p class="kicker">This window · 1 Aug – 12 Sep 2026</p>
           <h2 class="desk-title">The room after Worlds</h2>
           <p>A fan table of <strong>{len(LISTS):,}</strong> public lists. Standard is {counts.get("standard", 0)} of them. Pocket is {counts.get("pocket", 0)} - a Mega Evolution cup, not paper with fewer cards. GLC {counts.get("glc", 0)}, Unlimited {counts.get("unlimited", 0)}, Expanded {counts.get("expanded", 0)}. Worlds 2026 accounts for {worlds_n} rows. Andrew Hedrick won Masters on Dragapult; the weeks of online cups after San Francisco are here too.</p>
           {market_brief_html()}
@@ -2418,7 +2418,7 @@ def page_desk():
         <h1 class="page-title">The Desk</h1>
         <p class="lede">A fan journal sitting on {len(LISTS):,} public lists. Not a rumor mill. Not a shopfront wearing a magazine costume. The tables first, then the sentences.</p>
         <div class="prose">
-          <p>Worlds 2026 is over. The paper is still Standard: H, I, and J. Hedrick’s Dragapult is the headline and, in this window, also the plurality - one hundred Standard lists under that name, plus Dusknoir and Blaziken cousins. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking are the next seats, not a surprise “dead format.”</p>
+          <p>Worlds 2026 is over. The paper is still Standard: H, I, and J. Hedrick’s Dragapult is the headline and, in this window, also the plurality: 135 Standard lists under that name, plus Dusknoir and Blaziken cousins. N’s Zoroark, Alakazam / Dudunsparce, Basic Box, and Slowking are the next seats, not a surprise “dead format.”</p>
           <p>Pocket is a different sport. {counts.get("pocket", 0)} lists, Mega Lucario and Mega Altaria at the front. If you drive to a League Challenge with a 20-card screenshot, you will be illegal. Read <a href="/guides/pocket-vs-paper.html">Pocket vs paper</a> before you sleeve either.</p>
           <p>GLC remains the gym: singleton, one type. Psychic and Colorless posted the most. Expanded is a small table ({counts.get("expanded", 0)} lists). Unlimited is the vintage cups ({counts.get("unlimited", 0)}). They belong here because they posted, not because they are Standard.</p>
         </div>
@@ -2479,7 +2479,7 @@ def page_methodology():
         <h1 class="page-title">How we build this</h1>
         <div class="prose">
           <h3>Lists</h3>
-          <p>Rows come from public Limitless TCG tables (Worlds 2026) and Limitless Play standings (online cups). A list is on this site if a full public table posted in the 1 August–9 September 2026 window. We do not invent placings. The source URL on a list page is the authority if we disagree with it.</p>
+          <p>Rows come from public Limitless TCG tables (Worlds 2026) and Limitless Play standings (online cups). A list is on this site if a full public table posted in the 1 August–12 September 2026 window. We do not invent placings. The source URL on a list page is the authority if we disagree with it.</p>
           <h3>Formats</h3>
           <p>Tags are Standard, Expanded, Gym Leader Challenge, Pocket, and Unlimited. Pocket is not paper. GLC is not Standard with a type filter. Mixing those on purpose is how you show up illegal - see the guides.</p>
           <h3>Prices</h3>
@@ -2501,13 +2501,13 @@ def page_faq():
         ("Where do the decklists come from?", "Public Limitless TCG and Limitless Play tables. Worlds 2026 from the posted Masters table. Online cups from standings that include a full list."),
         ("Are you affiliated with Pokémon?", "No. Fan site. Not affiliated with Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast."),
         ("What formats do you cover?", "Standard, Expanded, Gym Leader Challenge, Pokémon TCG Pocket, and Unlimited. No Limited hub."),
-        ("Why is Dragapult everywhere?", "Because the room played it. About a hundred Standard lists in this window are named Dragapult, plus variants. That is a table, not a recommendation."),
+        ("Why is Dragapult everywhere?", "Because the room played it. 135 Standard lists in this window are named Dragapult, plus variants. That is a table, not a recommendation."),
         ("Can I use a Pocket list at a League Challenge?", "Not if the challenge is paper Standard. Pocket is 20 cards and a different product. Read Pocket vs paper."),
         ("How do prices work?", "Public TCGPlayer market snapshots for singles that posted in this window. 7-day and 30-day change on the tracker. Not a live API tick."),
         ("Do you make money from buy links?", "Yes, if you click them. TCGplayer Impact 7670706 / 1780961. Amazon Associates on the shop. AdSense Auto ads. See Partners and Privacy."),
         ("Where is Discord?", "Placeholder. No invite link until there is a real server to join."),
         ("Is the watchlist an account?", "No. localStorage in this browser, key pkdl-market-v1. Clearing site data deletes it."),
-        ("How often does the window update?", "This build is August–September 2026 (through 9 Sep). The date is on the Desk and in the footer of the methodology."),
+        ("How often does the window update?", "This build is August–September 2026 (through 12 Sep). The date is on the Desk and in the footer of the methodology."),
     ]
     items = "".join(
         f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q, a in qas

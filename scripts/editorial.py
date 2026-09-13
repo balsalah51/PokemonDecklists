@@ -6,7 +6,7 @@ ESSAYS = [
         "/desk.html",
         "The Desk",
         "What this window actually says",
-        "1,172 lists from 1 August to 9 September 2026. Dragapult still leads Standard. Pocket is a Mega Evolution cup.",
+        "1,606 lists from 1 August to 12 September 2026. Dragapult still leads Standard. Pocket is a Mega Evolution cup.",
         "/img/art/art-binder.jpg",
     ),
     (
@@ -42,7 +42,7 @@ TYPE_BLURB = {
     "darkness": "Darkness is N’s Zoroark, Honchkrow, and the mill / disruption cousins. The 4-of supporters matter more than the attackers. Read the trainer row first.",
     "metal": "Metal is still the awkward paper type - boxes, Magnezone hybrids, and the old Energy cards that spike on the tracker. A Metal list that posts in Unlimited is not a Standard list.",
     "fairy": "Fairy is thin in this window. If a list shows Fairy energy it is usually a splash or a Pocket experiment. Do not force a paper identity that the table is not playing.",
-    "dragon": "Dragon is Dragapult, and then Dragapult with a friend (Dusknoir, Blaziken). One hundred Standard lists in this window are just “Dragapult.” Open three of them. The 1-ofs are the real list.",
+    "dragon": "Dragon is Dragapult, and then Dragapult with a friend (Dusknoir, Blaziken). 135 Standard lists in this window are just “Dragapult.” Open three of them. The 1-ofs are the real list.",
     "colorless": "Colorless is Basic Box, Dudunsparce, and the GLC Colorless gym. Energy is easy; the constraint is the attacker suite. Colorless GLC is one of the few community piles that still looks like a gym leader’s box.",
 }
 
@@ -54,7 +54,7 @@ GUIDE_BODY = {
 """,
     "standard": """
 <p>Standard in 2026 is regulation marks <strong>H, I, and J</strong>. G-mark cards left the format on 26 March 2026 for Pokémon TCG Live and 10 April 2026 for paper Play! Pokémon events. Mega Evolution Pokémon ex are in the pool and follow ordinary evolution rules.</p>
-<p>In this window the Standard table is not mysterious. Dragapult is the plurality - about a hundred lists under that name alone, plus Dusknoir and Blaziken variants. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking fill the next seats. The Worlds 2026 Masters winner was Andrew Hedrick on Dragapult.</p>
+<p>In this window the Standard table is not mysterious. Dragapult is the plurality: 135 lists under that name alone, plus Dusknoir and Blaziken variants. N’s Zoroark, Alakazam / Dudunsparce, Basic Box, and Slowking fill the next seats. The Worlds 2026 Masters winner was Andrew Hedrick on Dragapult.</p>
 <p>When you copy a Standard list off this site, check the date. A 30 August Worlds list and a 8 September online cup are the same format, not the same metagame. Open the <a href="/tier-list.html">tier list</a> for the weighted view, then open three actual lists in the same archetype and diff the 1-ofs.</p>
 """,
     "expanded": """
