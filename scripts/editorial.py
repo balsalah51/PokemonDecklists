@@ -6,7 +6,7 @@ ESSAYS = [
         "/desk.html",
         "The Desk",
         "What this window actually says",
-        "1,172 lists from 1 August to 9 September 2026. Dragapult still leads Standard. Pocket is a Mega Evolution cup.",
+        "Public lists from August 2026 through the latest cup. Dragapult still leads Standard. Pocket is a Mega Evolution cup.",
         "/img/art/art-binder.jpg",
     ),
     (
@@ -42,7 +42,7 @@ TYPE_BLURB = {
     "darkness": "Darkness is N’s Zoroark, Honchkrow, and the mill / disruption cousins. The 4-of supporters matter more than the attackers. Read the trainer row first.",
     "metal": "Metal is still the awkward paper type - boxes, Magnezone hybrids, and the old Energy cards that spike on the tracker. A Metal list that posts in Unlimited is not a Standard list.",
     "fairy": "Fairy is thin in this window. If a list shows Fairy energy it is usually a splash or a Pocket experiment. Do not force a paper identity that the table is not playing.",
-    "dragon": "Dragon is Dragapult, and then Dragapult with a friend (Dusknoir, Blaziken). One hundred Standard lists in this window are just “Dragapult.” Open three of them. The 1-ofs are the real list.",
+    "dragon": "Dragon is Dragapult, and then Dragapult with a friend (Dusknoir, Blaziken). Most Standard lists under that name are just “Dragapult.” Open three of them. The 1-ofs are the real list.",
     "colorless": "Colorless is Basic Box, Dudunsparce, and the GLC Colorless gym. Energy is easy; the constraint is the attacker suite. Colorless GLC is one of the few community piles that still looks like a gym leader’s box.",
 }
 
@@ -50,15 +50,15 @@ GUIDE_BODY = {
     "pokemon-tcg": """
 <p>The Pokémon Trading Card Game is a 60-card constructed game in paper and on Pokémon TCG Live. You take six Prize cards. You attach one Energy a turn unless a card says otherwise. The Pokémon in play have HP, attacks, and retreat costs. Knocking out a Mega Evolution Pokémon ex is usually three prizes, not two.</p>
 <p>This site is organized by <strong>format</strong>, not by a leader name. That is the difference from One Piece Deck Base, whose hubs sit under a character. Open Standard if you want the championship pile. Open Pocket if you want the 20-card phone game. Open Gym Leader Challenge if you want singleton, one type, no rule boxes.</p>
-<p>Lists here are public tournament tables from August and September 2026. They are not a substitute for the official rulebook. Official text lives on <a href="https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources/" target="_blank" rel="noopener">Play! Pokémon</a>.</p>
+<p>Lists here are public tournament tables from August 2026 through early October, including the cups that posted from September onward. They are not a substitute for the official rulebook. Official text lives on <a href="https://www.pokemon.com/us/play-pokemon/about/tournaments-rules-and-resources/" target="_blank" rel="noopener">Play! Pokémon</a>.</p>
 """,
     "standard": """
 <p>Standard in 2026 is regulation marks <strong>H, I, and J</strong>. G-mark cards left the format on 26 March 2026 for Pokémon TCG Live and 10 April 2026 for paper Play! Pokémon events. Mega Evolution Pokémon ex are in the pool and follow ordinary evolution rules.</p>
-<p>In this window the Standard table is not mysterious. Dragapult is the plurality - about a hundred lists under that name alone, plus Dusknoir and Blaziken variants. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking fill the next seats. The Worlds 2026 Masters winner was Andrew Hedrick on Dragapult.</p>
+<p>In this window the Standard table is not mysterious. Dragapult is the plurality, plus Dusknoir and Blaziken variants. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking fill the next seats. The Worlds 2026 Masters winner was Andrew Hedrick on Dragapult. September and October cups sit on the same pages as San Francisco.</p>
 <p>When you copy a Standard list off this site, check the date. A 30 August Worlds list and a 8 September online cup are the same format, not the same metagame. Open the <a href="/tier-list.html">tier list</a> for the weighted view, then open three actual lists in the same archetype and diff the 1-ofs.</p>
 """,
     "expanded": """
-<p>Expanded is Black &amp; White forward, with its own ban list. It is still an official Play! Pokémon format at some events, but it is not the Worlds constructed seat. Lists on this site are the ones that actually posted in August–September 2026 - a small table compared with Standard.</p>
+<p>Expanded is Black &amp; White forward, with its own ban list. It is still an official Play! Pokémon format at some events, but it is not the Worlds constructed seat. Lists on this site are the ones that actually posted in the current window - a small table compared with Standard. September 2026 did not add a new Expanded cup to the public table.</p>
 <p>Do not take an Expanded list into a Standard cup. The card pool is a decade wider. Ban lists change. Read the official Expanded legality page before you sleeve it for paper.</p>
 """,
     "gym-leader-challenge": """
@@ -82,7 +82,7 @@ GUIDE_BODY = {
 """,
     "worlds-2026": """
 <p>The 2026 Pokémon World Championships were at the Moscone Center in San Francisco, 28–30 August 2026, with TCG finals at Chase Center on the 30th. Masters TCG: 797 players. Winner: Andrew Hedrick, Dragapult.</p>
-<p>This site carries public Worlds lists from the Limitless table, plus the online cups that filled the two weeks after. That is why the homepage window is August–September 2026, not “all time.”</p>
+<p>This site carries public Worlds lists from the Limitless table, plus the online cups that kept posting through September and into October. That is why the homepage window runs from August 2026 through the latest cup, not “all time.”</p>
 <p>If you want the championship pile, start with <a href="/formats/standard.html">Standard</a>, then the <a href="/tier-list.html">tier list</a>, then a Worlds list with a placing next to the name. A 16th-place list from San Francisco is still a Worlds list.</p>
 """,
     "play-pokemon": """
@@ -113,7 +113,7 @@ GUIDE_BODY = {
 """,
     "championship-series": """
 <p>The 2026 Championship Series is the Play! Pokémon season around rotation: League Cups, Regionals, Internationals, then Worlds in San Francisco at the end of August. Championship Points gate the invitation, not this site.</p>
-<p>After Worlds the online cups keep posting. That is why September lists sit next to the Moscone table. The format did not rotate again on 1 September.</p>
+<p>After Worlds the online cups keep posting. That is why September and October lists sit next to the Moscone table. The format did not rotate again on 1 September.</p>
 """,
     "rotation-2026": """
 <p>G-mark cards left Standard on <strong>26 March 2026</strong> (Pokémon TCG Live) and <strong>10 April 2026</strong> (paper Play! Pokémon). The legal pool is H, I, and J.</p>
