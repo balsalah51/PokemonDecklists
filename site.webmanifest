@@ -4,8 +4,8 @@
   "description": "Pok\u00e9mon TCG decklists by format, card prices, and tournament results.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4f1ec",
-  "theme_color": "#c62828",
+  "background_color": "#f6f3ee",
+  "theme_color": "#d0122d",
   "lang": "en-US",
   "icons": [
     {

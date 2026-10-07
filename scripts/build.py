@@ -19,13 +19,59 @@ DATA = json.loads((ROOT / "data" / "lists.json").read_text())
 PRICES = json.loads((ROOT / "data" / "prices.json").read_text())
 CARDS = json.loads((ROOT / "data" / "cards.json").read_text()) if (ROOT / "data" / "cards.json").exists() else []
 LISTS = DATA["lists"]
+
+_MONTHS = {
+    "01": "January",
+    "02": "February",
+    "03": "March",
+    "04": "April",
+    "05": "May",
+    "06": "June",
+    "07": "July",
+    "08": "August",
+    "09": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December",
+}
+_DATES = sorted({(x.get("date") or "")[:10] for x in LISTS if len(x.get("date") or "") >= 10})
+if _DATES:
+    NOW = _DATES[-1]
+
+
+def _mon(iso: str) -> str:
+    return _MONTHS.get(iso[5:7], iso[5:7])
+
+
+def _span() -> str:
+    if not _DATES:
+        return "2026"
+    names: list[str] = []
+    for d in _DATES:
+        name = _mon(d)
+        if name not in names:
+            names.append(name)
+    if len(names) == 1:
+        return f"{names[0]} 2026"
+    return f"{names[0]}–{names[-1]} 2026"
+
+
+def _window() -> str:
+    if not _DATES:
+        return _span()
+    a, b = _DATES[0], _DATES[-1]
+    return f"{int(a[8:10])} {_mon(a)[:3]} {a[:4]} – {int(b[8:10])} {_mon(b)[:3]} {b[:4]}"
+
+
+SPAN = _span()
+WINDOW = _window()
 SITE = "Pokémon Decklists"
 SHORT = "PKMN"
 CANON = "https://pokemondecklists.com"
 PARTNER = "https://partner.tcgplayer.com/c/7670706/1780961/21018"
 ADS = "ca-pub-1074015774205047"
-NOW = "2026-09-11"
-CSS_V = "pkdl-10"
+NOW = "2026-10-07"
+CSS_V = "pkdl-11"
 
 TYPES = [
     ("grass", "Grass", "#4c9a2a"),
@@ -396,14 +442,27 @@ def nav(current: str = "") -> str:
       </nav>"""
 
 
+def type_rail() -> str:
+    bits = []
+    for key, lab, hx in TYPES:
+        bits.append(
+            f'<a href="/guides/types/{key}.html" style="--type:{hx}" title="{e(lab)}"><span class="visually-hidden">{e(lab)}</span></a>'
+        )
+    return f'<div class="type-rail" aria-label="Pokémon types">{"".join(bits)}</div>'
+
+
 def header(current: str = "") -> str:
     return f"""  <header class="site-header">
+    {type_rail()}
     <div class="header-inner">
       <a class="brand" href="/" aria-label="Pokémon Decklists home">
-        <img class="logo" src="/img/pkdl-avatar.png" width="48" height="48" alt="" />
+        <span class="logo-wrap">
+          <img class="logo" src="/img/pkdl-avatar.png" width="48" height="48" alt="" />
+          <span class="ball" aria-hidden="true"></span>
+        </span>
         <div>
           <p class="site-name">Pokémon Decklists</p>
-          <p class="subtitle">Tournament lists · Market desk · Fan journal</p>
+          <p class="subtitle">Championship lists · Price desk · Fan journal</p>
         </div>
       </a>
       <form class="header-search" method="get" action="/search.html" role="search">
@@ -505,7 +564,7 @@ def head(
   <link rel="dns-prefetch" href="https://images.pokemontcg.io" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Source+Serif+4:opsz,wght@8..60,600;700&amp;display=swap" />
   <meta name="robots" content="{e(robots)}" />
-  <meta name="theme-color" content="#c62828" />
+  <meta name="theme-color" content="#d0122d" />
   <meta name="application-name" content="Pokémon Decklists" />
   <meta name="apple-mobile-web-app-title" content="PKMN Decklists" />
   <meta name="format-detection" content="telephone=no" />
@@ -653,7 +712,7 @@ def page_index():
     wall = card_wall_html()
     return head(
         "Pokémon TCG Decklists | Standard, Pocket & GLC",
-        "Tournament Pokémon TCG decklists by format: Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. August–September 2026 lists, card prices, and shop.",
+        f"Tournament Pokémon TCG decklists by format: Standard, Pocket, Gym Leader Challenge, Expanded, and Unlimited. {SPAN} lists, card prices, and shop.",
         "/",
         extra=extra,
         image_alt="Vintage-style fire dragon banner for Pokémon Decklists",
@@ -663,7 +722,7 @@ def page_index():
         <img class="home-splash-bg" src="/img/pkdl-hero.jpg" alt="" width="1920" height="1080" fetchpriority="high" decoding="async">
 {fan}
         <div class="home-splash-copy">
-          <p class="splash-kicker">Fan journal · August–September 2026</p>
+          <p class="splash-kicker">Fan journal · {SPAN}</p>
           <h1>Pokémon Decklists</h1>
           <p class="splash-lead">Tournament lists, a price desk, and original writing. Standard, Pocket, and Gym Leader Challenge first.</p>
           <div class="formats">
@@ -711,7 +770,7 @@ def page_index():
           <div class="home-third-head">
             <p class="kicker">Compete</p>
             <h2>Decklists</h2>
-            <p>{len(LISTS):,} August–September 2026 lists by format.</p>
+            <p>{len(LISTS):,} {SPAN} lists by format.</p>
           </div>
           <div class="home-third-body">
             <a class="half-link" href="#formats"><strong>Formats</strong><span>Types, color combos, recent lists</span></a>
@@ -754,7 +813,7 @@ def page_index():
           <h3>Highest market prints</h3>
           <a href="/collectibles/cards/">Full catalog →</a>
         </div>
-        <p class="muted">Real card photos from the August–September 2026 tracker. Open any print for history, Watch, Compare, and a TCGplayer affiliate buy.</p>
+        <p class="muted">Real card photos from the {SPAN} tracker. Open any print for history, Watch, Compare, and a TCGplayer affiliate buy.</p>
 {wall}
       </section>
 
@@ -798,7 +857,7 @@ def page_index():
           <h3>Recent lists</h3>
           <div class="muted">{len(LISTS)} lists</div>
         </div>
-        <p class="muted">Newest first from August and September 2026. Worlds 2026 plus Limitless Play cups in Standard, Pocket, GLC, Expanded, and vintage Unlimited.</p>
+        <p class="muted">Newest first from {SPAN}. Worlds 2026 plus Limitless Play cups in Standard, Pocket, GLC, Expanded, and vintage Unlimited.</p>
         <ul class="recent-list" aria-label="Recent decklists">
 {chr(10).join(recent_item(x) for x in recent)}
         </ul>
@@ -853,23 +912,58 @@ def page_formats_index():
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Formats</div>
         <h1 class="page-title">Formats</h1>
-        <p>Pokémon TCG is organized by format, not by a leader. Each page shows the types posting, the popular color combos, then the August–September 2026 lists.</p>
+        <p>Pokémon TCG is organized by format, not by a leader. Each page shows the types posting, the popular color combos, then the {SPAN} lists.</p>
         <div class="format-cards">{cards}</div>
       </div>
     </main>
 """ + footer()
 
 
+def date_filter_options() -> str:
+    months: list[tuple[str, str]] = []
+    for d in _DATES:
+        key = d[:7]
+        if any(k == key for k, _ in months):
+            continue
+        months.append((key, _mon(d)))
+    bits = ['<option value="">Any date</option>']
+    for key, name in reversed(months):
+        bits.append(f'<option value="{key}">{e(name)} 2026</option>')
+    return "\n".join(bits)
+
+
+def browse_slice(rows: list[dict], per_month: int = 160) -> list[dict]:
+    """Keep Worlds and a fresh slice of every month. Full tables stay on their own pages."""
+    pinned = [r for r in rows if "World Championship" in (r.get("event") or "")]
+    pinned_ids = {id(r) for r in pinned}
+    by_month: dict[str, list] = defaultdict(list)
+    for r in rows:
+        if id(r) in pinned_ids:
+            continue
+        by_month[(r.get("date") or "")[:7]].append(r)
+    shown = list(pinned)
+    for month in sorted(by_month, reverse=True):
+        chunk = sorted(
+            by_month[month],
+            key=lambda x: (x.get("date") or "", -(int(x.get("placing") or 99))),
+            reverse=True,
+        )
+        shown.extend(chunk[:per_month])
+    shown.sort(key=lambda x: (x.get("date") or "", -(int(x.get("placing") or 99))), reverse=True)
+    return shown
+
+
 def page_format(fmt: dict) -> str:
     rows, type_c, pair_c, arch = format_stats(fmt["id"])
     rows = sorted(rows, key=lambda x: x.get("date") or "", reverse=True)
+    shown = browse_slice(rows)
     type_section = "\n".join(
         f'<div class="combo-card" id="{key}"><span class="dot" style="background:{hx}"></span><div><div style="font-weight:800">{lab}</div><div class="muted">{type_c.get(key,0)} lists using {lab} energy</div></div></div>'
         for key, lab, hx in TYPES if type_c.get(key)
     ) or '<p class="muted">Type breakdown fills in from posted energy.</p>'
     return head(
         f"{fmt['name']} Pokémon TCG Decklists (2026)",
-        f"{fmt['blurb']} {len(rows)} recent {fmt['name']} lists from August and September 2026, grouped by type and color combo.",
+        f"{fmt['blurb']} {len(rows)} recent {fmt['name']} lists from {SPAN}, grouped by type and color combo.",
         f"/formats/{fmt['id']}.html",
         fmt["img"],
         extra=ld_script(
@@ -916,13 +1010,12 @@ def page_format(fmt: dict) -> str:
         </section>
 
         <section class="deck-index" id="recent" style="margin-top:22px">
-          <div class="section-title"><h3>Recent lists</h3><div class="muted">{len(rows)} lists</div></div>
+          <div class="section-title"><h3>Recent lists</h3><div class="muted">{len(shown)} of {len(rows)}</div></div>
+          <p class="muted">Showing Worlds plus the newest slice of each month. All {len(rows)} {e(fmt['name'])} lists from {SPAN} have their own pages. Search covers the full table.</p>
           <div class="list-filters" data-hub-filters>
             <input data-filter="q" placeholder="Player, archetype, event" aria-label="Filter lists" />
             <select data-filter="when">
-              <option value="">Any date</option>
-              <option value="sep">September 2026</option>
-              <option value="aug">August 2026</option>
+              {date_filter_options()}
             </select>
             <select data-filter="place">
               <option value="">Any finish</option>
@@ -931,7 +1024,7 @@ def page_format(fmt: dict) -> str:
             </select>
           </div>
           <ul class="list">
-{list_index_items(rows)}
+{list_index_items(shown)}
           </ul>
         </section>
       </div>
@@ -1078,7 +1171,7 @@ def page_tier():
             href = href_list(sample)
         types = list_types(sample) if sample else []
         cls = color_class(types)
-        meta = f"{arch.get(name,0)} Worlds · {sept_arch.get(name,0)} Sept"
+        meta = f"{arch.get(name,0)} Worlds · {sept_arch.get(name,0)} cups"
         return f"""            <a class="tier-leader {cls}" href="{href}">
               <img src="{e(img)}" alt="" width="86" height="120" loading="lazy" />
               <div class="name">{e(name)}</div>
@@ -1098,14 +1191,14 @@ def page_tier():
         )
     return head(
         "Standard Pokémon TCG tier list after Worlds 2026",
-        "Standard tier list after the 2026 World Championships in San Francisco, cross-checked with September Limitless Play cups.",
+        f"Standard tier list after the 2026 World Championships in San Francisco, cross-checked with Limitless Play cups through {NOW}.",
         "/tier-list.html",
     ) + header("tier") + f"""
     <main id="main" class="single">
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Tier List</div>
         <h1 class="page-title">Standard tier list</h1>
-        <p>Built from the 2026 World Championships Masters table (797 players, 28–30 Aug, San Francisco) plus September Limitless Play Standard cups. Pictures are from public lists, not a greatest-hits poster of popular cards.</p>
+        <p>Built from the 2026 World Championships Masters table (797 players, 28–30 Aug, San Francisco) plus Standard Limitless Play cups from September 2026 onward. Pictures are from public lists, not a greatest-hits poster of popular cards.</p>
         <p class="muted">Updated {NOW}. Click a tile for a real list.</p>
         <div class="tier-board">
 {chr(10).join(rows_html)}
@@ -1114,7 +1207,7 @@ def page_tier():
           <div class="section-title"><h3>Tier list FAQ</h3></div>
           <details open>
             <summary>How is this Pokémon TCG tier list built?</summary>
-            <p>Worlds 2026 top 24 counts three times. September Play cups count once. That keeps the San Francisco table in front without ignoring the weeks after.</p>
+            <p>Worlds 2026 rows count three times. Standard cups from September 2026 onward count once. San Francisco stays weighted, and a deck that kept winning after Worlds can still climb.</p>
           </details>
           <details>
             <summary>What format is the tier list?</summary>
@@ -1376,6 +1469,8 @@ def top_archetypes(fmt: str, n: int = 6) -> list[tuple[str, int]]:
 def essay_grid_html() -> str:
     bits = []
     for href, kicker, title, dek, img in ESSAYS:
+        if href == "/desk.html":
+            dek = f"{len(LISTS):,} lists from {WINDOW}. Dragapult still leads Standard. Pocket is a Mega Evolution cup."
         bits.append(
             f'<a class="essay-card" href="{e(href)}">'
             f'<img src="{e(img)}" alt="" width="640" height="360" loading="lazy">'
@@ -1421,9 +1516,9 @@ def digest_html() -> str:
     return f"""
       <section class="digest" id="window">
         <div>
-          <p class="kicker">This window · 1 Aug – 9 Sep 2026</p>
+          <p class="kicker">This window · {WINDOW}</p>
           <h2 class="desk-title">The room after Worlds</h2>
-          <p>A fan table of <strong>{len(LISTS):,}</strong> public lists. Standard is {counts.get("standard", 0)} of them. Pocket is {counts.get("pocket", 0)} - a Mega Evolution cup, not paper with fewer cards. GLC {counts.get("glc", 0)}, Unlimited {counts.get("unlimited", 0)}, Expanded {counts.get("expanded", 0)}. Worlds 2026 accounts for {worlds_n} rows. Andrew Hedrick won Masters on Dragapult; the weeks of online cups after San Francisco are here too.</p>
+          <p>A fan table of <strong>{len(LISTS):,}</strong> public lists from {SPAN}. Standard is {counts.get("standard", 0)} of them. Pocket is {counts.get("pocket", 0)} - a Mega Evolution cup, not paper with fewer cards. GLC {counts.get("glc", 0)}, Unlimited {counts.get("unlimited", 0)}, Expanded {counts.get("expanded", 0)}. Worlds 2026 accounts for {worlds_n} rows. Andrew Hedrick won Masters on Dragapult; the cups from September 2026 onward are here too.</p>
           {market_brief_html()}
           <p class="digest-cta"><a class="home-ghost" href="/desk.html">Open the Desk report</a> <a class="home-ghost" href="/methodology.html">How we source this</a></p>
         </div>
@@ -1509,7 +1604,7 @@ def page_collectibles_hub():
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / Collectibles</div>
         <h1 class="page-title">Collectibles</h1>
-        <p>The other half of the site. Singles that posted in August–September 2026 lists, with public TCGPlayer market history via Limitless, card facts, and affiliate buy links.</p>
+        <p>The other half of the site. Singles that posted in {SPAN} lists, with public TCGPlayer market history via Limitless, card facts, and affiliate buy links.</p>
         <div class="collect-jump">
           <a class="home-ghost" href="/market/">Market hub</a>
           <a class="home-ghost" href="/price-tracker.html">Price tracker</a>
@@ -1628,7 +1723,7 @@ def page_sets_index():
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Sets</div>
         <h1 class="page-title">Sets</h1>
-        <p>Set codes from the August–September 2026 lists. Open a set for the singles we track.</p>
+        <p>Set codes from the {SPAN} lists. Open a set for the singles we track.</p>
         <ul class="list">{"".join(items)}</ul>
       </div>
     </main>
@@ -1763,7 +1858,7 @@ def page_prices():
       <div class="card hero">
         <div class="crumb"><a href="/">Home</a> / <a href="/collectibles/">Collectibles</a> / Price tracker</div>
         <h1 class="page-title">Card price tracker</h1>
-        <p>Market history for singles that posted in August–September 2026 lists. Charts are public TCGPlayer snapshots via Limitless. Open a name for the collectible card page. Every buy button is an affiliate link.</p>
+        <p>Market history for singles that posted in {SPAN} lists. Charts are public TCGPlayer snapshots via Limitless. Open a name for the collectible card page. Every buy button is an affiliate link.</p>
         {market_subnav("tracker")}
         <p><a class="home-ghost" href="/collectibles/">Collectibles hub</a> · <a class="home-ghost" href="/collectibles/cards/">Catalog</a> · <a class="home-ghost" href="/collectibles/movers.html">Movers</a></p>
         <div class="section-title"><h3>Biggest 7-day moves</h3><div class="muted">From this tracker set</div></div>
@@ -1849,7 +1944,7 @@ GUIDES = [
     ("standard", "Standard format", "H, I, and J regulation marks after the 2026 rotation. Used at Worlds, Internationals, and Regionals."),
     ("expanded", "Expanded format", "Black & White forward. Official Play! Pokémon format with a separate ban list."),
     ("gym-leader-challenge", "Gym Leader Challenge", "Singleton, one type, no rule boxes. The community format that still feels like a gym."),
-    ("pokemon-tcg-pocket", "Pokémon TCG Pocket", "Twenty-card mobile lists. Different energy, huge online cups in August and September 2026."),
+    ("pokemon-tcg-pocket", "Pokémon TCG Pocket", "Twenty-card mobile lists. Different energy, huge online cups from August through October 2026."),
     ("regulation-marks", "Regulation marks", "The letter on the card is legality, not the set symbol. G rotated in 2026."),
     ("mega-evolution", "Mega Evolution", "Mega Evolution Pokémon ex are Basic, Stage 1, or Stage 2 and give three prizes."),
     ("worlds-2026", "World Championships 2026", "Moscone Center, San Francisco, 28–30 August 2026. Andrew Hedrick on Dragapult."),
@@ -2036,7 +2131,7 @@ def page_rules():
             <li><a href="/formats/expanded.html">Expanded</a><span class="muted">BW+</span><p>Wider constructed pool. Still an official Play! Pokémon format at some events.</p></li>
             <li><a href="/formats/glc.html">Gym Leader Challenge</a><span class="muted">Community</span><p>Singleton, one type, no rule-box Pokémon. Ban list at gymleaderchallenge.com.</p></li>
             <li><a href="/formats/pocket.html">Pokémon TCG Pocket</a><span class="muted">Mobile</span><p>20-card lists. Separate product line, separate cups.</p></li>
-            <li><a href="/formats/unlimited.html">Unlimited</a><span class="muted">Vintage</span><p>Base–Neo and EX-era community cups in August 2026.</p></li>
+            <li><a href="/formats/unlimited.html">Unlimited</a><span class="muted">Vintage</span><p>Base–Neo and EX-era community cups posted alongside the 2026 circuit.</p></li>
           </ul>
         </section>
         <section class="faq">
@@ -2144,6 +2239,10 @@ def page_search():
           </div>
         </form>
         <p id="search-status" class="muted" hidden></p>
+        <div id="search-live" hidden>
+          <div class="section-title"><h3>Matching lists</h3><div class="muted" id="search-live-count"></div></div>
+          <ul class="list" id="search-results"></ul>
+        </div>
         {''.join(groups)}
       </div>
     </main>
@@ -2299,7 +2398,7 @@ def page_staples():
     bits.append("</tbody></table>")
     return page_market_shell(
         "Most-played Pokémon staples | Pokémon Decklists",
-        "Pokémon lines copied most in August–September 2026 lists, with market price when the print is in the tracker.",
+        f"Pokémon lines copied most in {SPAN} lists, with market price when the print is in the tracker.",
         "/market/staples.html",
         "staples",
         "Staples",
@@ -2391,6 +2490,9 @@ def page_desk():
     glc = top_archetypes("glc", 4)
     pocket_html = "".join(f"<li><span>{e(n)}</span><strong>{c}</strong></li>" for n, c in pocket)
     glc_html = "".join(f"<li><span>{e(n)}</span><strong>{c}</strong></li>" for n, c in glc)
+    std_top = top_archetypes("standard", 6)
+    drag_n = next((c for n, c in std_top if n == "Dragapult"), 0)
+    next_seats = ", ".join(n for n, _ in std_top if n != "Dragapult") or "the rest of the table"
     extra = ld_script(
         {
             "@context": "https://schema.org",
@@ -2403,7 +2505,7 @@ def page_desk():
     )
     return head(
         "The Desk | Pokémon TCG window report",
-        "Editorial report on August–September 2026 Pokémon TCG lists: Standard after Worlds, Pocket cups, GLC, and the price desk.",
+        f"Editorial report on {SPAN} Pokémon TCG lists: Standard after Worlds, Pocket cups, GLC, and the price desk.",
         "/desk.html",
         "/img/art/art-binder.jpg",
         extra=extra,
@@ -2418,7 +2520,7 @@ def page_desk():
         <h1 class="page-title">The Desk</h1>
         <p class="lede">A fan journal sitting on {len(LISTS):,} public lists. Not a rumor mill. Not a shopfront wearing a magazine costume. The tables first, then the sentences.</p>
         <div class="prose">
-          <p>Worlds 2026 is over. The paper is still Standard: H, I, and J. Hedrick’s Dragapult is the headline and, in this window, also the plurality - one hundred Standard lists under that name, plus Dusknoir and Blaziken cousins. Alakazam / Dudunsparce, Basic Box, N’s Zoroark, and Slowking are the next seats, not a surprise “dead format.”</p>
+          <p>Worlds 2026 is over. The paper is still Standard: H, I, and J. Hedrick’s Dragapult is the headline. In this window, {drag_n:,} Standard lists are filed under that name alone, plus Dusknoir and Blaziken cousins. Next seats: {e(next_seats)}. That is a table, not a surprise “dead format.”</p>
           <p>Pocket is a different sport. {counts.get("pocket", 0)} lists, Mega Lucario and Mega Altaria at the front. If you drive to a League Challenge with a 20-card screenshot, you will be illegal. Read <a href="/guides/pocket-vs-paper.html">Pocket vs paper</a> before you sleeve either.</p>
           <p>GLC remains the gym: singleton, one type. Psychic and Colorless posted the most. Expanded is a small table ({counts.get("expanded", 0)} lists). Unlimited is the vintage cups ({counts.get("unlimited", 0)}). They belong here because they posted, not because they are Standard.</p>
         </div>
@@ -2479,15 +2581,15 @@ def page_methodology():
         <h1 class="page-title">How we build this</h1>
         <div class="prose">
           <h3>Lists</h3>
-          <p>Rows come from public Limitless TCG tables (Worlds 2026) and Limitless Play standings (online cups). A list is on this site if a full public table posted in the 1 August–9 September 2026 window. We do not invent placings. The source URL on a list page is the authority if we disagree with it.</p>
+          <p>Rows come from public Limitless TCG tables (Worlds 2026) and Limitless Play standings (online cups). This build holds {len(LISTS):,} lists from {WINDOW}. We do not invent placings. The source URL on a list page is the authority if we disagree with it.</p>
           <h3>Formats</h3>
           <p>Tags are Standard, Expanded, Gym Leader Challenge, Pocket, and Unlimited. Pocket is not paper. GLC is not Standard with a type filter. Mixing those on purpose is how you show up illegal - see the guides.</p>
           <h3>Prices</h3>
           <p>Spot, 7-day, and 30-day figures are public TCGPlayer market snapshots carried via Limitless for singles that appeared in this window. Charts are not a live brokerage. Buy buttons wrap the live TCGplayer Impact partner link.</p>
           <h3>Staples</h3>
-          <p>The staples table sums Pokémon row counts across every list in the window. A name with 795 copies was copied a lot. It is not a price prediction.</p>
+          <p>The staples table sums Pokémon row counts across every list in the window. A name with a high copy count was copied a lot. It is not a price prediction.</p>
           <h3>Tier list</h3>
-          <p>Standard only. Worlds 2026 top-table archetypes count three times; September Play cups count once. That keeps San Francisco in front without ignoring the weeks after. Pictures are from posted lists, not a licensed poster.</p>
+          <p>Standard only. Worlds 2026 rows count three times. Standard cups from September 2026 onward count once. That keeps San Francisco weighted without ignoring the weeks after. Pictures are from posted lists, not a licensed poster.</p>
           <h3>What we will not do</h3>
           <p>We will not paste fake affiliate IDs. We will not put a Discord URL on the site until there is a real invite. We will not claim Nintendo affiliation.</p>
         </div>
@@ -2497,17 +2599,18 @@ def page_methodology():
 
 
 def page_faq():
+    drag_n = sum(1 for x in LISTS if x["format"] == "standard" and clean(x.get("archetype") or "") == "Dragapult")
     qas = [
         ("Where do the decklists come from?", "Public Limitless TCG and Limitless Play tables. Worlds 2026 from the posted Masters table. Online cups from standings that include a full list."),
         ("Are you affiliated with Pokémon?", "No. Fan site. Not affiliated with Nintendo, The Pokémon Company, Creatures Inc., GAME FREAK, or Wizards of the Coast."),
         ("What formats do you cover?", "Standard, Expanded, Gym Leader Challenge, Pokémon TCG Pocket, and Unlimited. No Limited hub."),
-        ("Why is Dragapult everywhere?", "Because the room played it. About a hundred Standard lists in this window are named Dragapult, plus variants. That is a table, not a recommendation."),
+        ("Why is Dragapult everywhere?", f"Because the room played it. {drag_n:,} Standard lists in this window are named Dragapult, plus variants. That is a table, not a recommendation."),
         ("Can I use a Pocket list at a League Challenge?", "Not if the challenge is paper Standard. Pocket is 20 cards and a different product. Read Pocket vs paper."),
         ("How do prices work?", "Public TCGPlayer market snapshots for singles that posted in this window. 7-day and 30-day change on the tracker. Not a live API tick."),
         ("Do you make money from buy links?", "Yes, if you click them. TCGplayer Impact 7670706 / 1780961. Amazon Associates on the shop. AdSense Auto ads. See Partners and Privacy."),
         ("Where is Discord?", "Placeholder. No invite link until there is a real server to join."),
         ("Is the watchlist an account?", "No. localStorage in this browser, key pkdl-market-v1. Clearing site data deletes it."),
-        ("How often does the window update?", "This build is August–September 2026 (through 9 Sep). The date is on the Desk and in the footer of the methodology."),
+        ("How often does the window update?", f"This build is {WINDOW} ({len(LISTS):,} lists). The date is on the Desk and in the methodology."),
     ]
     items = "".join(
         f"<details><summary>{e(q)}</summary><p>{e(a)}</p></details>" for q, a in qas
@@ -2540,6 +2643,26 @@ def page_faq():
 """ + footer()
 
 
+def write_search_index():
+    rows = []
+    for lst in LISTS:
+        rows.append(
+            {
+                "h": href_list(lst),
+                "t": clean(lst.get("title") or ""),
+                "a": clean(lst.get("archetype") or ""),
+                "e": clean(lst.get("event") or ""),
+                "f": lst.get("format") or "",
+                "d": (lst.get("date") or "")[:10],
+                "p": int(lst.get("placing") or 0),
+            }
+        )
+    (ROOT / "data" / "search-index.json").write_text(
+        json.dumps(rows, ensure_ascii=False, separators=(",", ":"))
+    )
+    print("search index", len(rows))
+
+
 def extras():
     (ROOT / "ads.txt").write_text("google.com, pub-1074015774205047, DIRECT, f08c47fec0942fa0\n")
     (ROOT / "robots.txt").write_text(
@@ -2553,8 +2676,8 @@ def extras():
         "description": "Pokémon TCG decklists by format, card prices, and tournament results.",
         "start_url": "/",
         "display": "standalone",
-        "background_color": "#f4f1ec",
-        "theme_color": "#c62828",
+        "background_color": "#f6f3ee",
+        "theme_color": "#d0122d",
         "lang": "en-US",
         "icons": [
             {"src": "/img/pkdl-logo-48.png", "sizes": "48x48", "type": "image/png"},
@@ -2673,6 +2796,7 @@ def extras():
 
 
 def main():
+    write_search_index()
     write("index.html", page_index())
     write("formats/index.html", page_formats_index())
     for f in FORMATS:
